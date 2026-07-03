@@ -1,0 +1,28 @@
+# Core Spark + Delta stack
+# NOTE: pyspark 3.5.x pairs with delta-spark 3.2.x (matched on the Delta compatibility matrix).
+pyspark==3.5.1
+delta-spark==3.2.0
+
+# Data quality
+great-expectations==0.18.19
+
+# ML tracking + registry
+mlflow==2.14.1
+scikit-learn==1.5.1
+pandas==2.2.2
+numpy==1.26.4
+
+# RAG demo (all OSS, runs locally)
+chromadb==0.5.5
+sentence-transformers==3.0.1
+
+# Serving demo
+streamlit==1.36.0
+
+# Data loading helper
+requests==2.32.3
+pyarrow==16.1.0
+
+# Dev tooling
+pytest==8.2.2
+ruff==0.5.6

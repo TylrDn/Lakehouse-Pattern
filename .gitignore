@@ -1,0 +1,93 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# --- Testing / coverage ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# --- Linting ---
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+
+# --- Editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# --- Environment / secrets ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Spark / Delta artifacts ---
+metastore_db/
+derby.log
+spark-warehouse/
+*.crc
+
+# --- Local lakehouse output (regenerable) ---
+# NOTE: the `lakehouse/` Python package is intentionally tracked. Only the
+# generated lake root gets ignored, which lives under data/ by default.
+/lakehouse-root/
+data/raw/
+data/bronze/
+data/silver/
+data/gold/
+data/checkpoints/
+data/downloads/
+data/sample_raw/*.csv
+data/sample_raw/*.parquet
+data/sample_raw/*.json
+!data/sample_raw/.gitkeep
+
+# --- MLflow ---
+mlruns/
+mlartifacts/
+*.mlflow
+
+# --- Vector store ---
+ml/rag_demo/chroma_store/
+ml/rag_demo/index/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb_checkpoints
