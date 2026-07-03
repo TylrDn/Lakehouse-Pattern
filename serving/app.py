@@ -20,20 +20,20 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from lakehouse.paths import GOLD_CUSTOMER_LTV, GOLD_DAILY_REVENUE
+from lakehouse import paths
 from lakehouse.spark import get_spark
 
 
 @st.cache_data(ttl=60)
 def load_daily_revenue() -> pd.DataFrame:
     spark = get_spark("serving-app")
-    return spark.read.format("delta").load(str(GOLD_DAILY_REVENUE)).toPandas()
+    return spark.read.format("delta").load(str(paths.GOLD_DAILY_REVENUE)).toPandas()
 
 
 @st.cache_data(ttl=60)
 def load_customer_ltv() -> pd.DataFrame:
     spark = get_spark("serving-app")
-    return spark.read.format("delta").load(str(GOLD_CUSTOMER_LTV)).toPandas()
+    return spark.read.format("delta").load(str(paths.GOLD_CUSTOMER_LTV)).toPandas()
 
 
 def main() -> None:

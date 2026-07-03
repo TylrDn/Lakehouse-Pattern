@@ -34,16 +34,14 @@ from pyspark.sql.functions import (
     trim,
 )
 
-from lakehouse.paths import (
-    BRONZE_TRANSACTIONS,
-    SILVER_DIR,
-    SILVER_TRANSACTIONS,
-    ensure_dirs,
-)
+from lakehouse import paths
 from lakehouse.schemas import SILVER_TRANSACTIONS_SCHEMA
 from lakehouse.spark import get_spark
 
-REJECTS_TABLE = SILVER_DIR / "transactions_rejects"
+
+def _rejects_table() -> str:
+    """Return the current rejects-table path (resolved lazily for testability)."""
+    return str(paths.SILVER_DIR / "transactions_rejects")
 
 
 # ---------------------------------------------------------------------------
@@ -119,14 +117,17 @@ def _initial_write(spark: SparkSession, df: DataFrame) -> None:
     require a rewrite.
     """
     # Ensure schema alignment. If the incoming df is missing a column we
-    # deliberately want the write to fail loudly.
-    aligned = df.select(*[c.name for c in SILVER_TRANSACTIONS_SCHEMA.fields], "event_date")
+    # deliberately want the write to fail loudly. ``event_date`` is the
+    # partition column; the remaining columns must appear in schema order.
+    aligned = df.select(
+        *[c.name for c in SILVER_TRANSACTIONS_SCHEMA.fields], "event_date"
+    )
     (
         aligned.write.format("delta")
         .mode("overwrite")
         .partitionBy("event_date")
         .option("overwriteSchema", "true")
-        .save(str(SILVER_TRANSACTIONS))
+        .save(str(paths.SILVER_TRANSACTIONS))
     )
 
 
@@ -137,7 +138,7 @@ def _merge_upsert(spark: SparkSession, updates: DataFrame) -> None:
     partition, MERGE will match on ``transaction_id`` and update-in-place
     instead of appending duplicates.
     """
-    target = DeltaTable.forPath(spark, str(SILVER_TRANSACTIONS))
+    target = DeltaTable.forPath(spark, str(paths.SILVER_TRANSACTIONS))
     (
         target.alias("t")
         .merge(
@@ -156,7 +157,7 @@ def _write_rejects(rejects: DataFrame) -> None:
         rejects.write.format("delta")
         .mode("append")
         .option("mergeSchema", "true")
-        .save(str(REJECTS_TABLE))
+        .save(_rejects_table())
     )
 
 
@@ -175,36 +176,40 @@ def _optimize_and_vacuum(spark: SparkSession) -> None:
       snapshot older than the retention threshold. We use 168h (7d) here to
       demonstrate the API without hurting time-travel demos.
     """
-    spark.sql(f"OPTIMIZE delta.`{SILVER_TRANSACTIONS}` ZORDER BY (customer_id)")
+    target = paths.SILVER_TRANSACTIONS
+    spark.sql(f"OPTIMIZE delta.`{target}` ZORDER BY (customer_id)")
     # Retention shorter than 168h requires disabling a safety check — we keep
     # the default here so time-travel-to-yesterday demos still work.
-    spark.sql(f"VACUUM delta.`{SILVER_TRANSACTIONS}` RETAIN 168 HOURS")
+    spark.sql(f"VACUUM delta.`{target}` RETAIN 168 HOURS")
 
 
 # ---------------------------------------------------------------------------
 # Entrypoint
 # ---------------------------------------------------------------------------
 def run() -> None:
-    ensure_dirs()
+    paths.ensure_dirs()
     spark = get_spark("silver-clean")
 
-    bronze = spark.read.format("delta").load(str(BRONZE_TRANSACTIONS))
+    bronze = spark.read.format("delta").load(str(paths.BRONZE_TRANSACTIONS))
     typed = _cast_and_normalize(bronze)
     clean, rejects = _apply_quality_gates(typed)
     enriched = _enrich(clean)
 
-    if DeltaTable.isDeltaTable(spark, str(SILVER_TRANSACTIONS)):
+    if DeltaTable.isDeltaTable(spark, str(paths.SILVER_TRANSACTIONS)):
         _merge_upsert(spark, enriched)
     else:
         _initial_write(spark, enriched)
 
-    _write_rejects(rejects.withColumn("_bronze_source", lit(str(BRONZE_TRANSACTIONS))))
+    _write_rejects(
+        rejects.withColumn("_bronze_source", lit(str(paths.BRONZE_TRANSACTIONS)))
+    )
     _optimize_and_vacuum(spark)
 
-    n_silver = spark.read.format("delta").load(str(SILVER_TRANSACTIONS)).count()
+    n_silver = spark.read.format("delta").load(str(paths.SILVER_TRANSACTIONS)).count()
+    rejects_path = _rejects_table()
     n_rejects = (
-        spark.read.format("delta").load(str(REJECTS_TABLE)).count()
-        if DeltaTable.isDeltaTable(spark, str(REJECTS_TABLE))
+        spark.read.format("delta").load(rejects_path).count()
+        if DeltaTable.isDeltaTable(spark, rejects_path)
         else 0
     )
     print(f"Silver rows: {n_silver}. Rejects table rows (cumulative): {n_rejects}.")

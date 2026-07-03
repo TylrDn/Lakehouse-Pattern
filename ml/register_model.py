@@ -21,7 +21,7 @@ from typing import Optional
 import mlflow
 from mlflow.tracking import MlflowClient
 
-from lakehouse.paths import LAKEHOUSE_ROOT
+from lakehouse import paths
 
 MODEL_NAME = "daily_revenue_forecaster"
 EXPERIMENT_NAME = "lakehouse-pattern-daily-revenue"
@@ -41,7 +41,9 @@ def _best_run(client: MlflowClient) -> Optional[mlflow.entities.Run]:
 
 
 def register(promote_to: str = "Staging") -> None:
-    tracking_uri = os.environ.get("MLFLOW_TRACKING_URI", f"file://{LAKEHOUSE_ROOT.parent}/mlruns")
+    tracking_uri = os.environ.get(
+        "MLFLOW_TRACKING_URI", f"file://{paths.LAKEHOUSE_ROOT.parent}/mlruns"
+    )
     mlflow.set_tracking_uri(tracking_uri)
     client = MlflowClient()
 

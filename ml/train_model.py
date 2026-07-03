@@ -35,7 +35,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 
-from lakehouse.paths import GOLD_DAILY_REVENUE, LAKEHOUSE_ROOT
+from lakehouse import paths
 from lakehouse.spark import get_spark
 
 EXPERIMENT_NAME = "lakehouse-pattern-daily-revenue"
@@ -47,7 +47,7 @@ def load_features() -> pd.DataFrame:
     spark = get_spark("ml-train")
     df = (
         spark.read.format("delta")
-        .load(str(GOLD_DAILY_REVENUE))
+        .load(str(paths.GOLD_DAILY_REVENUE))
         .toPandas()
         .sort_values(["country", "event_date"])
         .reset_index(drop=True)
@@ -64,9 +64,11 @@ def load_features() -> pd.DataFrame:
     return df
 
 
-def train(n_estimators: int, max_depth: int | None) -> str:
+def train(n_estimators: int = 200, max_depth: int | None = 8) -> str:
     """Train + log a run. Returns the MLflow run_id."""
-    tracking_uri = os.environ.get("MLFLOW_TRACKING_URI", f"file://{LAKEHOUSE_ROOT.parent}/mlruns")
+    tracking_uri = os.environ.get(
+        "MLFLOW_TRACKING_URI", f"file://{paths.LAKEHOUSE_ROOT.parent}/mlruns"
+    )
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment(EXPERIMENT_NAME)
     mlflow.sklearn.autolog(log_models=False, disable=False)

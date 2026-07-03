@@ -34,12 +34,7 @@ from pyspark.sql.functions import (
     to_date,
 )
 
-from lakehouse.paths import (
-    GOLD_CUSTOMER_LTV,
-    GOLD_DAILY_REVENUE,
-    SILVER_TRANSACTIONS,
-    ensure_dirs,
-)
+from lakehouse import paths
 from lakehouse.spark import get_spark
 
 
@@ -82,27 +77,27 @@ def _write(df: DataFrame, path) -> None:
 def _register_views(spark: SparkSession) -> None:
     spark.sql(
         f"CREATE OR REPLACE TEMP VIEW gold_daily_revenue AS "
-        f"SELECT * FROM delta.`{GOLD_DAILY_REVENUE}`"
+        f"SELECT * FROM delta.`{paths.GOLD_DAILY_REVENUE}`"
     )
     spark.sql(
         f"CREATE OR REPLACE TEMP VIEW gold_customer_ltv AS "
-        f"SELECT * FROM delta.`{GOLD_CUSTOMER_LTV}`"
+        f"SELECT * FROM delta.`{paths.GOLD_CUSTOMER_LTV}`"
     )
 
 
 def run() -> None:
-    ensure_dirs()
+    paths.ensure_dirs()
     spark = get_spark("gold-aggregate")
-    silver = spark.read.format("delta").load(str(SILVER_TRANSACTIONS))
+    silver = spark.read.format("delta").load(str(paths.SILVER_TRANSACTIONS))
 
-    _write(build_daily_revenue(silver), GOLD_DAILY_REVENUE)
-    _write(build_customer_ltv(silver), GOLD_CUSTOMER_LTV)
+    _write(build_daily_revenue(silver), paths.GOLD_DAILY_REVENUE)
+    _write(build_customer_ltv(silver), paths.GOLD_CUSTOMER_LTV)
     _register_views(spark)
 
     print(
         "Gold marts written:\n"
-        f"  daily_revenue -> {GOLD_DAILY_REVENUE}\n"
-        f"  customer_ltv  -> {GOLD_CUSTOMER_LTV}"
+        f"  daily_revenue -> {paths.GOLD_DAILY_REVENUE}\n"
+        f"  customer_ltv  -> {paths.GOLD_CUSTOMER_LTV}"
     )
 
 

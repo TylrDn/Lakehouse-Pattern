@@ -42,12 +42,7 @@ from typing import Callable
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import col, current_timestamp, to_date, to_timestamp, trim, lower
 
-from lakehouse.paths import (
-    BRONZE_TRANSACTIONS,
-    GOLD_DAILY_REVENUE,
-    SILVER_TRANSACTIONS,
-    ensure_dirs,
-)
+from lakehouse import paths
 from lakehouse.spark import get_spark
 
 
@@ -88,7 +83,7 @@ class Step:
 # Transforms — expressed as pure functions of the SparkSession
 # ---------------------------------------------------------------------------
 def _silver(spark: SparkSession) -> DataFrame:
-    bronze = spark.read.format("delta").load(str(BRONZE_TRANSACTIONS))
+    bronze = spark.read.format("delta").load(str(paths.BRONZE_TRANSACTIONS))
     return (
         bronze.select(
             col("transaction_id"),
@@ -108,38 +103,40 @@ def _silver(spark: SparkSession) -> DataFrame:
 
 
 def _gold_daily(spark: SparkSession) -> DataFrame:
-    silver = spark.read.format("delta").load(str(SILVER_TRANSACTIONS))
+    silver = spark.read.format("delta").load(str(paths.SILVER_TRANSACTIONS))
     return silver.groupBy("event_date", "country").sum("revenue").withColumnRenamed(
         "sum(revenue)", "gross_revenue"
     )
 
 
-PIPELINE: list[Step] = [
-    Step(
-        name="silver_transactions",
-        transform=_silver,
-        target_path=str(SILVER_TRANSACTIONS),
-        partition_by=["event_date"],
-        expectations=[
-            Expectation("non_null_id", "transaction_id IS NOT NULL", action="fail"),
-            Expectation("positive_qty", "quantity > 0"),
-            Expectation("non_negative_price", "unit_price >= 0"),
-            Expectation("real_ts", "event_ts IS NOT NULL"),
-        ],
-    ),
-    Step(
-        name="gold_daily_revenue",
-        transform=_gold_daily,
-        target_path=str(GOLD_DAILY_REVENUE),
-    ),
-]
+def _pipeline() -> list[Step]:
+    """Build the pipeline definition. Function-scoped so paths are resolved lazily."""
+    return [
+        Step(
+            name="silver_transactions",
+            transform=_silver,
+            target_path=str(paths.SILVER_TRANSACTIONS),
+            partition_by=["event_date"],
+            expectations=[
+                Expectation("non_null_id", "transaction_id IS NOT NULL", action="fail"),
+                Expectation("positive_qty", "quantity > 0"),
+                Expectation("non_negative_price", "unit_price >= 0"),
+                Expectation("real_ts", "event_ts IS NOT NULL"),
+            ],
+        ),
+        Step(
+            name="gold_daily_revenue",
+            transform=_gold_daily,
+            target_path=str(paths.GOLD_DAILY_REVENUE),
+        ),
+    ]
 
 
 def run() -> None:
-    ensure_dirs()
+    paths.ensure_dirs()
     spark = get_spark("declarative-pipeline")
 
-    for step in PIPELINE:
+    for step in _pipeline():
         print(f"[pipeline] running step: {step.name}")
         df = step.transform(spark)
         for exp in step.expectations:

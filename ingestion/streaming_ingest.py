@@ -34,15 +34,21 @@ from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import current_timestamp, input_file_name
 from pyspark.sql.streaming import StreamingQuery
 
-from lakehouse.paths import BRONZE_TRANSACTIONS, CHECKPOINT_DIR, RAW_DIR, ensure_dirs
+from lakehouse import paths
 from lakehouse.schemas import BRONZE_TRANSACTIONS_SCHEMA
 from lakehouse.spark import get_spark
 
 
 def build_stream(spark: SparkSession, source_dir: Path) -> DataFrame:
-    """Build the streaming DataFrame over the landing zone."""
+    """Build the streaming DataFrame over the landing zone.
+
+    ``pathGlobFilter=*.csv`` scopes the file source strictly to CSV files;
+    without it Spark would try to parse the sibling ``README.md`` and
+    ``download.py`` as CSVs and pollute Bronze with junk rows.
+    """
     return (
         spark.readStream.option("header", "true")
+        .option("pathGlobFilter", "*.csv")
         .schema(BRONZE_TRANSACTIONS_SCHEMA)
         .csv(str(source_dir))
         .withColumn("_source_file", input_file_name())
@@ -52,15 +58,15 @@ def build_stream(spark: SparkSession, source_dir: Path) -> DataFrame:
 
 def run(once: bool = True) -> StreamingQuery:
     """Kick off (and, by default, drain) the streaming ingest."""
-    ensure_dirs()
+    paths.ensure_dirs()
     spark = get_spark("bronze-streaming-ingest")
-    stream = build_stream(spark, RAW_DIR)
+    stream = build_stream(spark, paths.RAW_DIR)
 
     writer = (
         stream.writeStream.format("delta")
         .option(
             "checkpointLocation",
-            str(CHECKPOINT_DIR / "bronze_transactions"),
+            str(paths.CHECKPOINT_DIR / "bronze_transactions"),
         )
         .option("mergeSchema", "true")
         .outputMode("append")
@@ -70,10 +76,10 @@ def run(once: bool = True) -> StreamingQuery:
     # For a truly-continuous stream use ``.trigger(processingTime="30 seconds")``.
     query = (
         writer.trigger(availableNow=True) if once else writer.trigger(processingTime="30 seconds")
-    ).start(str(BRONZE_TRANSACTIONS))
+    ).start(str(paths.BRONZE_TRANSACTIONS))
 
     query.awaitTermination()
-    n = spark.read.format("delta").load(str(BRONZE_TRANSACTIONS)).count()
+    n = spark.read.format("delta").load(str(paths.BRONZE_TRANSACTIONS)).count()
     print(f"Streaming pass complete. Bronze row count: {n}")
     return query
 

@@ -30,7 +30,7 @@ from pathlib import Path
 import chromadb
 from sentence_transformers import SentenceTransformer
 
-from lakehouse.paths import GOLD_CUSTOMER_LTV
+from lakehouse import paths
 from lakehouse.spark import get_spark
 
 _STORE_DIR = Path(__file__).parent / "chroma_store"
@@ -41,7 +41,7 @@ _EMBED_MODEL = "all-MiniLM-L6-v2"  # small, fast, CPU-friendly
 def _documents_from_gold() -> list[dict]:
     """Materialize Gold rows as short natural-language documents."""
     spark = get_spark("rag-index-build")
-    pdf = spark.read.format("delta").load(str(GOLD_CUSTOMER_LTV)).toPandas()
+    pdf = spark.read.format("delta").load(str(paths.GOLD_CUSTOMER_LTV)).toPandas()
     docs: list[dict] = []
     for _, row in pdf.iterrows():
         text = (

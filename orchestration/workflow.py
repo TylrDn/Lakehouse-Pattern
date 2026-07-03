@@ -108,11 +108,7 @@ def run(skip_ml: bool = False) -> None:
         for attempt in range(1, task.max_attempts + 1):
             print(f"[dag] {task.name} (attempt {attempt}/{task.max_attempts})")
             try:
-                # ``train`` accepts kwargs; call defensively.
-                try:
-                    task.run()
-                except TypeError:
-                    task.run(200, 8)  # type: ignore[misc]
+                task.run()
                 print(f"[dag] {task.name} OK")
                 break
             except Exception as exc:  # pragma: no cover - retry path
