@@ -135,9 +135,11 @@ def train(n_estimators: int = 200, max_depth: int | None = 8) -> str:
         mlflow.log_metric("r2", r2)
 
         signature = infer_signature(x_train, preds)
+        # MLflow 3 renamed the ``artifact_path`` kwarg to ``name``; keep the same
+        # subdirectory (``model``) for backward compatibility with runs:/... URIs.
         mlflow.sklearn.log_model(
             model,
-            artifact_path=MODEL_ARTIFACT_PATH,
+            name=MODEL_ARTIFACT_PATH,
             signature=signature,
             input_example=x_train.head(3),
         )

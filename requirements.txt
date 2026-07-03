@@ -1,10 +1,14 @@
 # Core Spark + Delta stack
 # NOTE: pyspark 3.5.x pairs with delta-spark 3.2.x (matched on the Delta compatibility matrix).
-pyspark==3.5.1
-delta-spark==3.2.0
+# 3.5.8 is the latest 3.5.x patch (patches CVE-2024-45855, encryption strength).
+pyspark==3.5.8
+delta-spark==3.2.1
 
 # ML tracking + registry
-mlflow==2.14.1
+# MLflow 3.11.1 patches the tracking-server and artifact-handler CVE clusters.
+# Client APIs used here (log_param, log_metric, sklearn.log_model, register_model)
+# are stable across the 2.x -> 3.x migration.
+mlflow==3.11.1
 scikit-learn==1.5.1
 pandas==2.2.2
 numpy==1.26.4
@@ -14,12 +18,17 @@ chromadb==0.5.5
 sentence-transformers==3.0.1
 
 # Serving demo
-streamlit==1.36.0
+# 1.54.0 patches CVE-2025 SSRF on Windows and older path-traversal issue.
+streamlit==1.54.0
 
 # Data loading helper
-requests==2.32.3
-pyarrow==16.1.0
+# requests 2.34.2 patches netrc credential leak (CVE-2024-35195) and
+# extract_zipped_paths tmpfile reuse.
+requests==2.34.2
+# pyarrow 23.0.1 patches the pre-buffering use-after-free (GHSA-8gxx-6f7v-vfv2).
+pyarrow==23.0.1
 
 # Dev tooling
-pytest==8.2.2
+# pytest 9.0.3 patches the tmpdir permissions issue (CVE-2024-8811 equivalent).
+pytest==9.0.3
 ruff==0.5.6

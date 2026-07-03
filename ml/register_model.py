@@ -1,15 +1,21 @@
-"""Register the best MLflow run to the Model Registry + tag stages.
+"""Register the best MLflow run to the Model Registry + tag with an alias.
 
 MLflow's Model Registry is the OSS counterpart of Unity Catalog's Models. It
 gives us:
+
 * A versioned, named handle for the "current production" model.
-* Stage transitions (``None`` -> ``Staging`` -> ``Production`` -> ``Archived``)
-  that can gate serving deploys.
+* Aliases (``champion``, ``challenger``) that gate serving deploys — these
+  replaced the legacy ``Staging``/``Production`` stages in MLflow 2.9+ and are
+  the only supported mechanism from MLflow 3 onward.
 * Audit history (who promoted what, when).
 
 On Databricks with UC, the exact same API works if you call
 ``mlflow.set_registry_uri("databricks-uc")`` — the model then lives under a
 three-level name like ``main.lakehouse_pattern.daily_revenue_forecaster``.
+
+Pass ``--legacy-stage`` to also call the deprecated
+``transition_model_version_stage`` API for backward compatibility with
+demos still driving off stages.
 """
 
 from __future__ import annotations
@@ -43,7 +49,7 @@ def _best_run(client: MlflowClient) -> Optional[mlflow.entities.Run]:
     return runs[0] if runs else None
 
 
-def register(promote_to: str = "Staging") -> None:
+def register(promote_to: str = "Staging", *, use_legacy_stage: bool = False) -> None:
     tracking_uri = os.environ.get(
         "MLFLOW_TRACKING_URI", f"file://{paths.LAKEHOUSE_ROOT.parent}/mlruns"
     )
@@ -66,22 +72,32 @@ def register(promote_to: str = "Staging") -> None:
     result = mlflow.register_model(model_uri, MODEL_NAME)
     _log.info("Registered %s v%s", MODEL_NAME, result.version)
 
-    # Stage transitions are deprecated in newer MLflow in favor of aliases;
-    # we set both for maximum reviewer clarity.
+    # Aliases are the modern promotion mechanism (MLflow 2.9+, required in 3.x).
     client.set_registered_model_alias(MODEL_NAME, "champion", result.version)
-    try:
-        client.transition_model_version_stage(
-            name=MODEL_NAME, version=result.version, stage=promote_to
-        )
-        _log.info("Transitioned v%s -> %s", result.version, promote_to)
-    except Exception as exc:  # pragma: no cover - newer MLflow deprecates stages
-        _log.warning(
-            "Stage transition skipped (%s); alias 'champion' set instead.", exc
-        )
+    _log.info("Set alias 'champion' -> v%s", result.version)
+
+    if use_legacy_stage:
+        # Deprecated path, kept only for demos that still key off stage names.
+        try:
+            client.transition_model_version_stage(
+                name=MODEL_NAME, version=result.version, stage=promote_to
+            )
+            _log.info(
+                "Transitioned v%s -> %s (legacy stage)", result.version, promote_to
+            )
+        except Exception as exc:  # pragma: no cover - stages fully removed
+            _log.warning(
+                "Legacy stage transition unavailable (%s); alias already set.", exc
+            )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stage", default="Staging", choices=["Staging", "Production"])
+    parser.add_argument(
+        "--legacy-stage",
+        action="store_true",
+        help="Also call the deprecated transition_model_version_stage API.",
+    )
     args = parser.parse_args()
-    register(args.stage)
+    register(args.stage, use_legacy_stage=args.legacy_stage)

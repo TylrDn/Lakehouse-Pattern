@@ -39,6 +39,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   directory other than the repo root (self-adds the repo root to
   `sys.path`). Previously failed with `ModuleNotFoundError: lakehouse`.
 
+### Security
+- Bumped MLflow 2.14.1 -> 3.11.1, pyspark 3.5.1 -> 3.5.8, delta-spark 3.2.0 -> 3.2.1,
+  pyarrow 16.1.0 -> 23.0.1, requests 2.32.3 -> 2.34.2, streamlit 1.36.0 -> 1.54.0,
+  pytest 8.2.2 -> 9.0.3. Closes the 42 Dependabot alerts flagged on the
+  0.1.0 pin (6 critical / 24 high / 10 moderate / 2 low). Full suite still
+  17/17 green.
+
+### Changed
+- `ml/train_model.py` now uses `mlflow.sklearn.log_model(..., name=...)`
+  (MLflow 3 API) instead of the deprecated `artifact_path=` kwarg.
+- `ml/register_model.py` promotes via the alias API by default; the deprecated
+  `transition_model_version_stage` call is gated behind `--legacy-stage`.
+
 ## [0.1.0] — 2026-07-03
 
 Initial public release. Complete Bronze/Silver/Gold lakehouse walkthrough with
