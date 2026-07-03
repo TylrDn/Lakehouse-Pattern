@@ -91,3 +91,11 @@ ml/rag_demo/index/
 # --- Jupyter ---
 .ipynb_checkpoints/
 *.ipynb_checkpoints
+
+# --- MkDocs site ---
+site/
+# Root-level docs mirrored into docs/ at build time by docs/prebuild.py
+docs/troubleshooting.md
+docs/changelog.md
+docs/contributing.md
+docs/security.md
