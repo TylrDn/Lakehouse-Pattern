@@ -12,7 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Terminal-demo SVG showing `make preflight` → `make dag` → `make serve`.
 - Social preview PNG (1280×640) at `docs/images/social-preview.png`.
 - `docs/lineage.md` — table-level Mermaid + column-level lineage tables.
-- `release`, `code style: ruff`, and `pre-commit` badges on the README.
+- `release`, `code style: ruff`, `pre-commit`, and `docs` badges on the README.
+- MkDocs Material site auto-deployed to GitHub Pages on every push to main
+  ([workflow](.github/workflows/docs.yml)).
+- `docs/index.md` landing page and `docs/prebuild.py` that mirrors
+  root-level markdown into the docs tree at build time.
+- Concept-coverage matrix rewritten with GitHub links to the exact file
+  (and where possible, the exact function or test) that implements each row.
+- `notebooks/01_lakehouse_walkthrough.ipynb` — scrollable Bronze → Silver
+  → Gold walkthrough with time-travel demo and optional MLflow cell.
+- `benchmarks/run_benchmarks.py` — reproducible pipeline timings in a
+  scratch workspace; writes `benchmarks/latest.md` + `latest.json` with
+  commit SHA and machine profile. Explicitly framed as a reproducibility
+  receipt, not a comparative claim.
 
 ### Fixed
 - `serving/app.py` now works when `streamlit run` is invoked from a

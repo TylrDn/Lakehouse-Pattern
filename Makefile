@@ -4,8 +4,8 @@
 PYTHON ?= python
 PIP    ?= pip
 
-.PHONY: help setup preflight lint test data bronze stream silver gold pipeline \
-        declarative ml rag serve orchestrate dag clean ci
+.PHONY: help setup preflight lint format test data bronze stream silver gold pipeline \
+        declarative ml rag serve orchestrate dag clean ci docs docs-serve bench bench-ml
 
 help:
 	@echo "Targets:"
@@ -26,6 +26,10 @@ help:
 	@echo "  test         Run pytest suite"
 	@echo "  lint         Run ruff"
 	@echo "  ci           lint + test (what CI runs)"
+	@echo "  docs         Build the MkDocs site into site/ (open site/index.html)"
+	@echo "  docs-serve   Serve the docs at http://localhost:8000 with live reload"
+	@echo "  bench        Reproducibility benchmark (ETL only)"
+	@echo "  bench-ml     Reproducibility benchmark including MLflow training"
 	@echo "  clean        Delete all regenerable lakehouse artifacts"
 
 setup:
@@ -80,7 +84,25 @@ lint:
 
 ci: lint test
 
+format:
+	ruff format .
+
+docs:
+	$(PYTHON) docs/prebuild.py
+	mkdocs build
+
+docs-serve:
+	$(PYTHON) docs/prebuild.py
+	mkdocs serve
+
+bench:
+	$(PYTHON) benchmarks/run_benchmarks.py
+
+bench-ml:
+	$(PYTHON) benchmarks/run_benchmarks.py --with-ml
+
 clean:
 	rm -rf data/bronze data/silver data/gold data/checkpoints data/downloads
 	rm -rf mlruns mlartifacts spark-warehouse metastore_db derby.log
 	rm -rf ml/rag_demo/chroma_store
+	rm -rf site benchmarks/latest.md benchmarks/latest.json

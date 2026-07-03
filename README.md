@@ -3,6 +3,7 @@
 > A reference implementation of the Databricks lakehouse architecture — medallion tables, Delta Lake, MLflow, and a RAG demo — that runs entirely on open-source tooling.
 
 [![ci](https://github.com/TylrDn/Lakehouse-Pattern/actions/workflows/ci.yml/badge.svg)](https://github.com/TylrDn/Lakehouse-Pattern/actions/workflows/ci.yml)
+[![docs](https://github.com/TylrDn/Lakehouse-Pattern/actions/workflows/docs.yml/badge.svg)](https://tylrdn.github.io/Lakehouse-Pattern/)
 [![release](https://img.shields.io/github/v/release/TylrDn/Lakehouse-Pattern?display_name=tag&sort=semver)](https://github.com/TylrDn/Lakehouse-Pattern/releases)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![python: 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
@@ -186,7 +187,13 @@ Java 17 is required for PySpark 3.5 — install via `brew install openjdk@17`
 (macOS) or `apt install openjdk-17-jre` (Debian/Ubuntu). `make preflight`
 will tell you if it's missing.
 
-Stuck? See [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md).
+Prefer a scrollable notebook to a Makefile? Open
+[`notebooks/01_lakehouse_walkthrough.ipynb`](notebooks/01_lakehouse_walkthrough.ipynb).
+
+Want reproducible pipeline timings? See [`benchmarks/`](benchmarks/).
+
+Stuck? See [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) or the full
+[docs site](https://tylrdn.github.io/Lakehouse-Pattern/).
 
 ### Databricks Community Edition (free tier)
 
