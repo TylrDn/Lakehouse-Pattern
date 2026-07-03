@@ -25,6 +25,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   scratch workspace; writes `benchmarks/latest.md` + `latest.json` with
   commit SHA and machine profile. Explicitly framed as a reproducibility
   receipt, not a comparative claim.
+- `.devcontainer/devcontainer.json` — one-click GitHub Codespaces / VS Code
+  Dev Container with Python 3.11 + Java 17, auto-runs `make setup && make
+  preflight`, forwards ports 8501 / 5000 / 8000.
+- `Dockerfile` and `docker-compose.yml` — three services (`app`, `mlflow`,
+  `streamlit`) sharing a repo bind-mount and a named `mlruns` volume so the
+  full stack comes up with `docker compose up`.
+- README Quickstart restructured into three parallel options: Codespaces,
+  Docker Compose, and local venv.
 
 ### Fixed
 - `serving/app.py` now works when `streamlit run` is invoked from a

@@ -1,0 +1,92 @@
+# -----------------------------------------------------------------------------
+# Lakehouse-Pattern — one-command local stack
+#
+#   docker compose up mlflow streamlit   # long-running services
+#   docker compose run --rm app make pipeline
+#   docker compose run --rm app make ml
+#   docker compose run --rm app pytest
+#
+# All services share the repo bind-mount and a named `mlruns` volume so the
+# artifacts written by `app` (Delta tables under ./data, MLflow runs under
+# /mlflow) are immediately visible to `mlflow` and `streamlit`.
+# -----------------------------------------------------------------------------
+
+services:
+  # ---------------------------------------------------------------------------
+  # `app` — one-shot runner for the pipeline, tests, notebooks, benchmarks.
+  # Not a daemon; used with `docker compose run --rm app <cmd>`.
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lakehouse-pattern:latest
+    working_dir: /app
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+    volumes:
+      - ./:/app
+      - mlruns:/mlflow
+    command: ["bash"]
+    tty: true
+    stdin_open: true
+
+  # ---------------------------------------------------------------------------
+  # `mlflow` — tracking + model registry UI on http://localhost:5000
+  # Artifact store is the shared `mlruns` volume so `app` writes and `mlflow`
+  # serves the same runs.
+  # ---------------------------------------------------------------------------
+  mlflow:
+    image: lakehouse-pattern:latest
+    depends_on:
+      app:
+        condition: service_started
+    working_dir: /mlflow
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --default-artifact-root /mlflow/artifacts
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlruns:/mlflow
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:5000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # `streamlit` — gold-table explorer on http://localhost:8501
+  # Requires the gold table to exist; run `docker compose run --rm app make
+  # pipeline` first (README documents this).
+  # ---------------------------------------------------------------------------
+  streamlit:
+    image: lakehouse-pattern:latest
+    depends_on:
+      app:
+        condition: service_started
+    working_dir: /app
+    command: >
+      streamlit run serving/app.py
+      --server.port 8501
+      --server.address 0.0.0.0
+      --server.headless true
+      --browser.gatherUsageStats false
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./:/app
+    environment:
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8501/_stcore/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mlruns:

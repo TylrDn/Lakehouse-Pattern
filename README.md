@@ -155,7 +155,33 @@ date) is a canonical mistake — it produces millions of tiny partitions.
 
 ## Quickstart
 
-### Local (no Databricks account needed)
+Three ways to run everything, in order of least friction:
+
+1. [GitHub Codespaces / VS Code Dev Containers](#option-1-codespaces--dev-container-zero-local-install) — zero local install.
+2. [Docker Compose](#option-2-docker-compose-one-command-stack) — one command for the full stack.
+3. [Local venv](#option-3-local-venv) — fastest inner loop for development.
+
+### Option 1: Codespaces / Dev Container (zero local install)
+
+On the repo page click **Code → Codespaces → Create codespace on main**, or open
+the folder in VS Code and pick **Reopen in Container**. The devcontainer
+provisions Python 3.11 + Java 17, runs `make setup && make preflight`
+automatically, and forwards ports **8501** (Streamlit), **5000** (MLflow), and
+**8000** (docs).
+
+### Option 2: Docker Compose (one-command stack)
+
+```bash
+docker compose run --rm app make pipeline   # bronze -> silver -> gold
+docker compose up -d mlflow streamlit       # MLflow UI + Streamlit gold explorer
+# open http://localhost:5000  and  http://localhost:8501
+```
+
+All three services share a bind-mount of the repo and a named `mlruns` volume,
+so Delta tables written by `app` show up immediately in the Streamlit UI and
+MLflow runs show up in the tracking server.
+
+### Option 3: Local venv
 
 ```bash
 # 1. Clone + install

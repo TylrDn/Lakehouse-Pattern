@@ -1,0 +1,54 @@
+{
+  "name": "Lakehouse-Pattern",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.11-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "17",
+      "installMaven": "false",
+      "installGradle": "false"
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "forwardPorts": [8501, 5000, 8000],
+  "portsAttributes": {
+    "8501": {
+      "label": "Streamlit gold explorer",
+      "onAutoForward": "notify"
+    },
+    "5000": {
+      "label": "MLflow tracking server",
+      "onAutoForward": "silent"
+    },
+    "8000": {
+      "label": "MkDocs docs site",
+      "onAutoForward": "silent"
+    }
+  },
+  "postCreateCommand": "python -m venv .venv && . .venv/bin/activate && make setup && make preflight",
+  "remoteEnv": {
+    "JAVA_HOME": "/usr/lib/jvm/msopenjdk-17"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "ms-toolsai.jupyter",
+        "redhat.vscode-yaml",
+        "bierner.markdown-mermaid",
+        "GitHub.vscode-pull-request-github"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python",
+        "python.terminal.activateEnvironment": true,
+        "editor.formatOnSave": true,
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff"
+        }
+      }
+    }
+  },
+  "remoteUser": "vscode"
+}
