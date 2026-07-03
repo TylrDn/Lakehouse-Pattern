@@ -18,6 +18,10 @@ from typing import Optional
 
 from pyspark.sql import SparkSession
 
+from lakehouse.env import check_prerequisites, get_logger
+
+_log = get_logger("lakehouse.spark")
+
 
 def get_spark(app_name: str = "lakehouse-pattern", shuffle_partitions: int = 4) -> SparkSession:
     """Return a Delta-enabled SparkSession, creating it on first call.
@@ -36,6 +40,12 @@ def get_spark(app_name: str = "lakehouse-pattern", shuffle_partitions: int = 4) 
     active: Optional[SparkSession] = SparkSession.getActiveSession()
     if active is not None:
         return active
+
+    # Preflight: fail fast with an actionable message if Java is missing / old.
+    # Skipped inside Databricks (where an active session exists) and can be
+    # bypassed with LAKEHOUSE_SKIP_PREFLIGHT=1 in unusual setups.
+    if os.environ.get("LAKEHOUSE_SKIP_PREFLIGHT") != "1":
+        check_prerequisites()
 
     builder = (
         SparkSession.builder.appName(app_name)
@@ -64,6 +74,7 @@ def get_spark(app_name: str = "lakehouse-pattern", shuffle_partitions: int = 4) 
 
     spark = builder.getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
+    _log.info("Spark %s ready (app=%s, shuffle=%d)", spark.version, app_name, shuffle_partitions)
     return spark
 
 
