@@ -17,11 +17,20 @@ The app renders three panels:
 
 from __future__ import annotations
 
-import pandas as pd
-import streamlit as st
+import sys
+from pathlib import Path
 
-from lakehouse import paths
-from lakehouse.spark import get_spark
+# Ensure the repo root is on sys.path so ``streamlit run serving/app.py``
+# works regardless of the caller's current working directory.
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+import pandas as pd  # noqa: E402
+import streamlit as st  # noqa: E402
+
+from lakehouse import paths  # noqa: E402
+from lakehouse.spark import get_spark  # noqa: E402
 
 
 @st.cache_data(ttl=60)
