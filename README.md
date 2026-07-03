@@ -3,9 +3,26 @@
 > A reference implementation of the Databricks lakehouse architecture — medallion tables, Delta Lake, MLflow, and a RAG demo — that runs entirely on open-source tooling.
 
 [![ci](https://github.com/TylrDn/Lakehouse-Pattern/actions/workflows/ci.yml/badge.svg)](https://github.com/TylrDn/Lakehouse-Pattern/actions/workflows/ci.yml)
+[![release](https://img.shields.io/github/v/release/TylrDn/Lakehouse-Pattern?display_name=tag&sort=semver)](https://github.com/TylrDn/Lakehouse-Pattern/releases)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![python: 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![java: 17](https://img.shields.io/badge/java-17-orange.svg)](https://adoptium.net/temurin/releases/?version=17)
+[![code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](.pre-commit-config.yaml)
+
+<p align="center">
+  <img src="docs/images/terminal-demo.svg" alt="Terminal walkthrough: make preflight, make dag, make serve" width="820"/>
+</p>
+
+## What you get
+
+<p align="center">
+  <img src="docs/images/streamlit-gold-explorer.png" alt="Streamlit gold-layer explorer showing $1.77M gross revenue, 4,950 orders, 201 unique customers, revenue-by-country chart, and top-20 customer table" width="820"/>
+</p>
+
+A reproducible Bronze → Silver → Gold pipeline that ends in an interactive
+Streamlit dashboard, a registered MLflow model, and a working RAG assistant
+— all runnable locally with a single `make dag` after `make preflight`.
 
 ## Business problem
 
@@ -67,7 +84,8 @@ flowchart LR
   Gov -. governs .- Gold
 ```
 
-Full narrative in [`docs/architecture.md`](docs/architecture.md).
+Full narrative in [`docs/architecture.md`](docs/architecture.md). Table-level
+and column-level lineage in [`docs/lineage.md`](docs/lineage.md).
 
 ## Tech stack
 

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Streamlit gold-explorer hero screenshot in the README.
+- Terminal-demo SVG showing `make preflight` → `make dag` → `make serve`.
+- Social preview PNG (1280×640) at `docs/images/social-preview.png`.
+- `docs/lineage.md` — table-level Mermaid + column-level lineage tables.
+- `release`, `code style: ruff`, and `pre-commit` badges on the README.
+
+### Fixed
+- `serving/app.py` now works when `streamlit run` is invoked from a
+  directory other than the repo root (self-adds the repo root to
+  `sys.path`). Previously failed with `ModuleNotFoundError: lakehouse`.
+
 ## [0.1.0] — 2026-07-03
 
 Initial public release. Complete Bronze/Silver/Gold lakehouse walkthrough with
