@@ -29,8 +29,11 @@ from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import current_timestamp, input_file_name, lit
 
 from lakehouse import paths
+from lakehouse.env import get_logger
 from lakehouse.schemas import BRONZE_TRANSACTIONS_SCHEMA
 from lakehouse.spark import get_spark
+
+_log = get_logger("ingestion.batch_ingest")
 
 
 def read_raw_csv(spark: SparkSession, src: Path) -> DataFrame:
@@ -79,11 +82,12 @@ def run(source: Path | None = None) -> None:
             f"Raw file not found at {src}. Run `make data` first to generate it."
         )
 
+    _log.info("Ingesting %s -> %s", src, paths.BRONZE_TRANSACTIONS)
     df = read_raw_csv(spark, src)
     write_bronze(df, paths.BRONZE_TRANSACTIONS, source_hint=src.name)
 
     n = spark.read.format("delta").load(str(paths.BRONZE_TRANSACTIONS)).count()
-    print(f"Bronze append complete. Table now has {n} rows at {paths.BRONZE_TRANSACTIONS}.")
+    _log.info("Bronze append complete. Table now has %d rows.", n)
 
 
 if __name__ == "__main__":

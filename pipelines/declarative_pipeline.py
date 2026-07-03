@@ -43,7 +43,10 @@ from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import col, current_timestamp, to_date, to_timestamp, trim, lower
 
 from lakehouse import paths
+from lakehouse.env import get_logger
 from lakehouse.spark import get_spark
+
+_log = get_logger("pipelines.declarative")
 
 
 # ---------------------------------------------------------------------------
@@ -66,7 +69,7 @@ class Expectation:
             raise ValueError(
                 f"Expectation '{self.name}' failed on {violations} rows: {self.predicate}"
             )
-        print(f"  [expectation:{self.name}] dropping {violations} violating rows")
+        _log.info("expectation %s dropped %d violating rows", self.name, violations)
         return df.filter(self.predicate)
 
 
@@ -137,7 +140,7 @@ def run() -> None:
     spark = get_spark("declarative-pipeline")
 
     for step in _pipeline():
-        print(f"[pipeline] running step: {step.name}")
+        _log.info("running step: %s", step.name)
         df = step.transform(spark)
         for exp in step.expectations:
             df = exp.apply(df)
@@ -145,7 +148,7 @@ def run() -> None:
         if step.partition_by:
             writer = writer.partitionBy(*step.partition_by)
         writer.save(step.target_path)
-        print(f"[pipeline] wrote {step.name} -> {step.target_path}")
+        _log.info("wrote %s -> %s", step.name, step.target_path)
 
 
 if __name__ == "__main__":

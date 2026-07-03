@@ -35,8 +35,11 @@ from pyspark.sql.functions import current_timestamp, input_file_name
 from pyspark.sql.streaming import StreamingQuery
 
 from lakehouse import paths
+from lakehouse.env import get_logger
 from lakehouse.schemas import BRONZE_TRANSACTIONS_SCHEMA
 from lakehouse.spark import get_spark
+
+_log = get_logger("ingestion.streaming_ingest")
 
 
 def build_stream(spark: SparkSession, source_dir: Path) -> DataFrame:
@@ -80,7 +83,7 @@ def run(once: bool = True) -> StreamingQuery:
 
     query.awaitTermination()
     n = spark.read.format("delta").load(str(paths.BRONZE_TRANSACTIONS)).count()
-    print(f"Streaming pass complete. Bronze row count: {n}")
+    _log.info("Streaming pass complete. Bronze row count: %d", n)
     return query
 
 

@@ -35,8 +35,11 @@ from pyspark.sql.functions import (
 )
 
 from lakehouse import paths
+from lakehouse.env import get_logger
 from lakehouse.schemas import SILVER_TRANSACTIONS_SCHEMA
 from lakehouse.spark import get_spark
+
+_log = get_logger("transform.silver_clean")
 
 
 def _rejects_table() -> str:
@@ -212,7 +215,7 @@ def run() -> None:
         if DeltaTable.isDeltaTable(spark, rejects_path)
         else 0
     )
-    print(f"Silver rows: {n_silver}. Rejects table rows (cumulative): {n_rejects}.")
+    _log.info("Silver rows: %d. Rejects rows (cumulative): %d.", n_silver, n_rejects)
 
 
 if __name__ == "__main__":

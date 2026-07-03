@@ -25,13 +25,23 @@ The pattern (Delta -> embed -> index -> retrieve -> ground) is identical.
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 
-import chromadb
-from sentence_transformers import SentenceTransformer
+# Silence chromadb's telemetry — it prints noisy warnings on every call and
+# has nothing to do with our RAG pattern. Must be set BEFORE importing
+# chromadb because it's read at module import.
+os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
+
+import chromadb  # noqa: E402
+from chromadb.config import Settings  # noqa: E402
+from sentence_transformers import SentenceTransformer  # noqa: E402
 
 from lakehouse import paths
+from lakehouse.env import get_logger
 from lakehouse.spark import get_spark
+
+_log = get_logger("ml.rag")
 
 _STORE_DIR = Path(__file__).parent / "chroma_store"
 _COLLECTION = "customer_ltv"
@@ -63,10 +73,18 @@ def _documents_from_gold() -> list[dict]:
     return docs
 
 
+def _chroma_client() -> chromadb.PersistentClient:
+    """Return a Chroma client with telemetry hard-off."""
+    return chromadb.PersistentClient(
+        path=str(_STORE_DIR),
+        settings=Settings(anonymized_telemetry=False),
+    )
+
+
 def build_index() -> None:
     """(Re)build the local Chroma index from Gold."""
     _STORE_DIR.mkdir(parents=True, exist_ok=True)
-    client = chromadb.PersistentClient(path=str(_STORE_DIR))
+    client = _chroma_client()
     # Reset the collection each build so demos are deterministic.
     try:
         client.delete_collection(_COLLECTION)
@@ -87,12 +105,12 @@ def build_index() -> None:
         metadatas=[d["metadata"] for d in docs],
         embeddings=embeddings,
     )
-    print(f"Indexed {len(docs)} customer documents into {_STORE_DIR}")
+    _log.info("Indexed %d customer documents into %s", len(docs), _STORE_DIR)
 
 
 def retrieve(question: str, k: int = 3) -> list[dict]:
     """Retrieve top-k grounding docs for a question."""
-    client = chromadb.PersistentClient(path=str(_STORE_DIR))
+    client = _chroma_client()
     coll = client.get_collection(_COLLECTION)
     model = SentenceTransformer(_EMBED_MODEL)
     q_emb = model.encode([question]).tolist()

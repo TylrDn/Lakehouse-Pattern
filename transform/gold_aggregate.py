@@ -35,7 +35,10 @@ from pyspark.sql.functions import (
 )
 
 from lakehouse import paths
+from lakehouse.env import get_logger
 from lakehouse.spark import get_spark
+
+_log = get_logger("transform.gold_aggregate")
 
 
 def build_daily_revenue(silver: DataFrame) -> DataFrame:
@@ -94,11 +97,7 @@ def run() -> None:
     _write(build_customer_ltv(silver), paths.GOLD_CUSTOMER_LTV)
     _register_views(spark)
 
-    print(
-        "Gold marts written:\n"
-        f"  daily_revenue -> {paths.GOLD_DAILY_REVENUE}\n"
-        f"  customer_ltv  -> {paths.GOLD_CUSTOMER_LTV}"
-    )
+    _log.info("Gold marts written: daily_revenue=%s customer_ltv=%s", paths.GOLD_DAILY_REVENUE, paths.GOLD_CUSTOMER_LTV)
 
 
 if __name__ == "__main__":

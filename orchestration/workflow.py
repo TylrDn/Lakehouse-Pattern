@@ -34,6 +34,10 @@ import time
 from dataclasses import dataclass, field
 from typing import Callable
 
+from lakehouse.env import get_logger
+
+_log = get_logger("orchestration")
+
 
 @dataclass
 class Task:
@@ -104,20 +108,25 @@ def _topo_order(tasks: list[Task]) -> list[Task]:
 
 def run(skip_ml: bool = False) -> None:
     tasks = [t for t in TASKS if not (skip_ml and t.name.startswith("ml_"))]
-    for task in _topo_order(tasks):
+    ordered = _topo_order(tasks)
+    _log.info("DAG start (%d tasks%s)", len(ordered), "; skip_ml=True" if skip_ml else "")
+    started = time.monotonic()
+    for task in ordered:
         for attempt in range(1, task.max_attempts + 1):
-            print(f"[dag] {task.name} (attempt {attempt}/{task.max_attempts})")
+            _log.info("%s (attempt %d/%d)", task.name, attempt, task.max_attempts)
             try:
                 task.run()
-                print(f"[dag] {task.name} OK")
+                _log.info("%s OK", task.name)
                 break
             except Exception as exc:  # pragma: no cover - retry path
-                print(f"[dag] {task.name} FAILED: {exc}")
+                _log.error("%s FAILED: %s", task.name, exc)
                 if attempt == task.max_attempts:
+                    _log.error("DAG aborted after %.1fs", time.monotonic() - started)
                     raise
                 sleep = 2**attempt
-                print(f"[dag] retrying in {sleep}s")
+                _log.warning("retrying %s in %ds", task.name, sleep)
                 time.sleep(sleep)
+    _log.info("DAG complete in %.1fs", time.monotonic() - started)
 
 
 if __name__ == "__main__":
