@@ -1,0 +1,43 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Set up Java (required by PySpark)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Skip heavy ML deps in CI — the transform + Delta tests are what
+          # gate PRs. RAG / MLflow are exercised locally via `make ml`.
+          pip install pyspark==3.5.1 delta-spark==3.2.0 pandas pyarrow pytest ruff
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Run tests
+        env:
+          PYSPARK_PYTHON: python
+        run: pytest -q -k "not rag and not mlflow"
