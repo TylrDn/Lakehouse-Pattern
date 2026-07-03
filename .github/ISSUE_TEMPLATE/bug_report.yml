@@ -1,0 +1,90 @@
+name: Bug report
+description: Something works incorrectly or crashes
+title: "[bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please check
+        [TROUBLESHOOTING.md](https://github.com/TylrDn/Lakehouse-Pattern/blob/main/TROUBLESHOOTING.md)
+        first — many setup issues are covered there.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+      placeholder: When I run `make dag`, task 3 fails with ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Exact commands, in order, starting from a clean clone.
+      placeholder: |
+        1. git clone https://github.com/TylrDn/Lakehouse-Pattern
+        2. make preflight
+        3. make dag
+      render: bash
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste the last ~50 lines of output. Redact anything sensitive.
+      render: shell
+    validations:
+      required: false
+
+  - type: input
+    id: commit-sha
+    attributes:
+      label: Commit SHA
+      description: Run `git rev-parse HEAD` in your clone.
+      placeholder: e.g. efe8b08
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Windows (WSL2)
+        - Windows (native)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      description: Output of `python --version`.
+      placeholder: e.g. Python 3.11.9
+    validations:
+      required: true
+
+  - type: input
+    id: java-version
+    attributes:
+      label: Java version
+      description: Output of `java -version` (paste the first line).
+      placeholder: e.g. openjdk version "17.0.10"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I ran `make preflight` and it passed
+        - label: I checked TROUBLESHOOTING.md
