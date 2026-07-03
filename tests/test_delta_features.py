@@ -51,14 +51,30 @@ def test_time_travel_returns_earlier_snapshot(spark, tmp_lakehouse):
 
 
 def test_schema_enforcement_rejects_bad_write(spark, tmp_lakehouse):
-    """Writing an incompatible schema without mergeSchema must fail."""
+    """Writing an incompatible schema without mergeSchema must fail.
+
+    Delta's schema enforcement rejects appends that add *new* columns unless
+    ``mergeSchema=true`` is explicitly set. This is the guardrail that makes
+    Delta safer than plain Parquet.
+
+    Note: we globally enable ``spark.databricks.delta.schema.autoMerge.enabled``
+    in ``lakehouse.spark``. To prove the enforcement contract holds, we
+    disable it for this test only.
+    """
     from pyspark.sql import Row
 
     from lakehouse import paths
 
-    df_ok = spark.createDataFrame([Row(a=1, b="x")])
-    df_ok.write.format("delta").mode("overwrite").save(str(paths.BRONZE_DIR / "schema_test"))
+    target = str(paths.BRONZE_DIR / "schema_test")
 
-    df_bad = spark.createDataFrame([Row(a="not-an-int", b="x")])
-    with pytest.raises(Exception):
-        df_bad.write.format("delta").mode("append").save(str(paths.BRONZE_DIR / "schema_test"))
+    df_ok = spark.createDataFrame([Row(a=1, b="x")])
+    df_ok.write.format("delta").mode("overwrite").save(target)
+
+    spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", "false")
+    try:
+        # A row with an extra column ``c`` violates the current schema.
+        df_bad = spark.createDataFrame([Row(a=1, b="y", c="extra")])
+        with pytest.raises(Exception):
+            df_bad.write.format("delta").mode("append").save(target)
+    finally:
+        spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", "true")
