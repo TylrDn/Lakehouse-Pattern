@@ -3,36 +3,46 @@
 
 PYTHON ?= python
 PIP    ?= pip
-DATA_DIR ?= data
 
-.PHONY: help setup lint test data bronze silver gold pipeline ml rag serve orchestrate clean ci
+.PHONY: help setup preflight lint test data bronze stream silver gold pipeline \
+        declarative ml rag serve orchestrate dag clean ci
 
 help:
 	@echo "Targets:"
 	@echo "  setup        Install Python dependencies"
-	@echo "  data         Download the sample dataset into data/sample_raw/"
-	@echo "  bronze       Run raw -> bronze batch ingest"
-	@echo "  silver       Run bronze -> silver cleansing + MERGE"
-	@echo "  gold        Run silver -> gold business aggregates"
+	@echo "  preflight    Check Java 17+ / JAVA_HOME are available"
+	@echo "  data         Generate the deterministic sample dataset"
+	@echo "  bronze       Raw -> Bronze (batch)"
+	@echo "  stream       Raw -> Bronze (Structured Streaming, availableNow)"
+	@echo "  silver       Bronze -> Silver (MERGE, quality gates, OPTIMIZE)"
+	@echo "  gold         Silver -> Gold marts (daily_revenue, customer_ltv)"
 	@echo "  pipeline     End-to-end: data -> bronze -> silver -> gold"
-	@echo "  ml           Train + log MLflow experiment on gold"
-	@echo "  rag          Build vector index and answer a demo question"
+	@echo "  declarative  Run the DLT-analog declarative pipeline"
+	@echo "  ml           Train + register the MLflow model"
+	@echo "  rag          Build the RAG vector index + demo query"
 	@echo "  serve        Launch the Streamlit gold explorer"
-	@echo "  orchestrate  Run the DAG orchestrator (local Workflows analog)"
+	@echo "  orchestrate  Run the DAG orchestrator (all steps)"
+	@echo "  dag          Run the DAG orchestrator, skipping ML tasks"
 	@echo "  test         Run pytest suite"
 	@echo "  lint         Run ruff"
 	@echo "  ci           lint + test (what CI runs)"
-	@echo "  clean        Delete regenerable lakehouse artifacts"
+	@echo "  clean        Delete all regenerable lakehouse artifacts"
 
 setup:
 	$(PIP) install --upgrade pip
 	$(PIP) install -r requirements.txt
+
+preflight:
+	$(PYTHON) -m lakehouse.env
 
 data:
 	$(PYTHON) data/sample_raw/download.py
 
 bronze: data
 	$(PYTHON) -m ingestion.batch_ingest
+
+stream: data
+	$(PYTHON) -m ingestion.streaming_ingest
 
 silver: bronze
 	$(PYTHON) -m transform.silver_clean
@@ -41,7 +51,10 @@ gold: silver
 	$(PYTHON) -m transform.gold_aggregate
 
 pipeline:
-	$(PYTHON) -m orchestration.workflow
+	$(PYTHON) -m orchestration.workflow --skip-ml
+
+declarative:
+	$(PYTHON) -m pipelines.declarative_pipeline
 
 ml: gold
 	$(PYTHON) -m ml.train_model
@@ -55,6 +68,9 @@ serve:
 
 orchestrate:
 	$(PYTHON) -m orchestration.workflow
+
+dag:
+	$(PYTHON) -m orchestration.workflow --skip-ml
 
 test:
 	pytest -q

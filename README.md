@@ -4,7 +4,8 @@
 
 [![ci](https://github.com/TylrDn/Lakehouse-Pattern/actions/workflows/ci.yml/badge.svg)](https://github.com/TylrDn/Lakehouse-Pattern/actions/workflows/ci.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![python: 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110/)
+[![python: 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
+[![java: 17](https://img.shields.io/badge/java-17-orange.svg)](https://adoptium.net/temurin/releases/?version=17)
 
 ## Business problem
 
@@ -144,24 +145,30 @@ cd Lakehouse-Pattern
 python -m venv .venv && source .venv/bin/activate
 make setup
 
-# 2. Generate the sample data + run the full pipeline
-make pipeline          # download → bronze → silver → gold + retries
+# 2. Verify prerequisites (Java 17+ on PATH)
+make preflight
 
-# 3. Train + register the ML model
+# 3. Generate the sample data + run the full ETL DAG
+make pipeline          # data → bronze → silver → gold, with retries
+
+# 4. Train + register the ML model
 make ml
 
-# 4. Build the RAG index and ask a question
+# 5. Build the RAG index and ask a question
 make rag
 
-# 5. Launch the BI app
+# 6. Launch the BI app
 make serve             # http://localhost:8501
 
-# 6. Run tests + linter
+# 7. Run tests + linter
 make ci
 ```
 
 Java 17 is required for PySpark 3.5 — install via `brew install openjdk@17`
-(macOS) or `apt install openjdk-17-jre` (Debian/Ubuntu).
+(macOS) or `apt install openjdk-17-jre` (Debian/Ubuntu). `make preflight`
+will tell you if it's missing.
+
+Stuck? See [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md).
 
 ### Databricks Community Edition (free tier)
 
