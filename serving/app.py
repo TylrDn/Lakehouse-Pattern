@@ -39,7 +39,9 @@ def load_customer_ltv() -> pd.DataFrame:
 def main() -> None:
     st.set_page_config(page_title="Lakehouse-Pattern — Gold Explorer", layout="wide")
     st.title("Lakehouse-Pattern — Gold Explorer")
-    st.caption("Reads directly from the Gold Delta tables materialized by the pipeline.")
+    st.caption(
+        "Reads directly from the Gold Delta tables materialized by the pipeline."
+    )
 
     try:
         daily = load_daily_revenue()
@@ -60,14 +62,18 @@ def main() -> None:
     st.subheader("Revenue over time")
     chart = (
         daily.assign(event_date=pd.to_datetime(daily["event_date"]))
-        .pivot_table(index="event_date", columns="country", values="gross_revenue", aggfunc="sum")
+        .pivot_table(
+            index="event_date", columns="country", values="gross_revenue", aggfunc="sum"
+        )
         .fillna(0)
     )
     st.line_chart(chart)
 
     st.subheader("Top 20 customers by lifetime revenue")
     st.dataframe(
-        ltv.sort_values("lifetime_revenue", ascending=False).head(20).reset_index(drop=True),
+        ltv.sort_values("lifetime_revenue", ascending=False)
+        .head(20)
+        .reset_index(drop=True),
         use_container_width=True,
     )
 

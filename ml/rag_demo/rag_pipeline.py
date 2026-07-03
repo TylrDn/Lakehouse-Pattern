@@ -152,7 +152,9 @@ def ask(question: str, k: int = 3) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--rebuild", action="store_true", help="Rebuild the vector index")
+    parser.add_argument(
+        "--rebuild", action="store_true", help="Rebuild the vector index"
+    )
     parser.add_argument(
         "--question",
         default="Who is our most valuable customer?",

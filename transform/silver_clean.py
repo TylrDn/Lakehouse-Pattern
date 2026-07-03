@@ -58,17 +58,15 @@ def _cast_and_normalize(df: DataFrame) -> DataFrame:
     is safer than throwing at cast time because Spark's failure mode on cast
     errors is "kill the whole task", which would take down the whole batch.
     """
-    return (
-        df.select(
-            col("transaction_id"),
-            col("customer_id"),
-            col("product_id"),
-            col("quantity").cast("int").alias("quantity"),
-            col("unit_price").cast("double").alias("unit_price"),
-            trim(col("currency")).alias("currency"),
-            to_timestamp(col("event_ts")).alias("event_ts"),
-            trim(lower(col("country"))).alias("country"),
-        )
+    return df.select(
+        col("transaction_id"),
+        col("customer_id"),
+        col("product_id"),
+        col("quantity").cast("int").alias("quantity"),
+        col("unit_price").cast("double").alias("unit_price"),
+        trim(col("currency")).alias("currency"),
+        to_timestamp(col("event_ts")).alias("event_ts"),
+        trim(lower(col("country"))).alias("country"),
     )
 
 

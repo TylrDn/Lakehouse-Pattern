@@ -33,7 +33,15 @@ from lakehouse.paths import RAW_DIR, ensure_dirs
 # Deterministic seed so every reviewer gets identical data.
 _SEED = 42
 _COUNTRIES = ["US", "GB", "DE", "FR", "JP", "CA", "AU"]
-_CURRENCIES = {"US": "USD", "GB": "GBP", "DE": "EUR", "FR": "EUR", "JP": "JPY", "CA": "CAD", "AU": "AUD"}
+_CURRENCIES = {
+    "US": "USD",
+    "GB": "GBP",
+    "DE": "EUR",
+    "FR": "EUR",
+    "JP": "JPY",
+    "CA": "CAD",
+    "AU": "AUD",
+}
 _PRODUCTS = [f"SKU-{i:04d}" for i in range(1, 41)]
 
 
@@ -117,6 +125,8 @@ def main(n_rows: int = 5000, out_dir: Path = RAW_DIR) -> Path:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--rows", type=int, default=5000, help="Number of clean rows to generate")
+    parser.add_argument(
+        "--rows", type=int, default=5000, help="Number of clean rows to generate"
+    )
     args = parser.parse_args()
     main(args.rows)

@@ -21,7 +21,7 @@ def _make_bronze(spark):
         # duplicate T-1 (should be deduped)
         ("T-1", "C-1", "SKU-1", "2", "10.00", "USD", "2025-01-01 10:00:00", "us"),
         # bad row: null customer_id
-        ("T-3", "",    "SKU-2", "1", "9.99",  "USD", "2025-01-02 09:00:00", "us"),
+        ("T-3", "", "SKU-2", "1", "9.99", "USD", "2025-01-02 09:00:00", "us"),
         # bad row: negative qty
         ("T-4", "C-3", "SKU-3", "-1", "9.99", "USD", "2025-01-02 09:00:00", "us"),
         # bad row: malformed ts
@@ -64,7 +64,11 @@ def test_quality_gates_route_bad_rows(spark):
 
 
 def test_enrich_dedupes_and_computes_revenue(spark):
-    from transform.silver_clean import _apply_quality_gates, _cast_and_normalize, _enrich
+    from transform.silver_clean import (
+        _apply_quality_gates,
+        _cast_and_normalize,
+        _enrich,
+    )
 
     typed = _cast_and_normalize(_make_bronze(spark))
     clean, _ = _apply_quality_gates(typed)
@@ -85,15 +89,33 @@ def test_gold_daily_revenue_aggregation(spark):
 
     silver = spark.createDataFrame(
         [
-            Row(transaction_id="T-1", customer_id="C-1", event_ts=datetime(2025, 1, 1, 10),
-                country="us", revenue=20.0),
-            Row(transaction_id="T-2", customer_id="C-2", event_ts=datetime(2025, 1, 1, 11),
-                country="us", revenue=5.0),
-            Row(transaction_id="T-3", customer_id="C-1", event_ts=datetime(2025, 1, 2, 12),
-                country="gb", revenue=8.0),
+            Row(
+                transaction_id="T-1",
+                customer_id="C-1",
+                event_ts=datetime(2025, 1, 1, 10),
+                country="us",
+                revenue=20.0,
+            ),
+            Row(
+                transaction_id="T-2",
+                customer_id="C-2",
+                event_ts=datetime(2025, 1, 1, 11),
+                country="us",
+                revenue=5.0,
+            ),
+            Row(
+                transaction_id="T-3",
+                customer_id="C-1",
+                event_ts=datetime(2025, 1, 2, 12),
+                country="gb",
+                revenue=8.0,
+            ),
         ]
     )
-    result = {(str(r["event_date"]), r["country"]): r for r in build_daily_revenue(silver).collect()}
+    result = {
+        (str(r["event_date"]), r["country"]): r
+        for r in build_daily_revenue(silver).collect()
+    }
     assert result[("2025-01-01", "us")].gross_revenue == pytest.approx(25.0)
     assert result[("2025-01-01", "us")].order_count == 2
     assert result[("2025-01-01", "us")].unique_customers == 2

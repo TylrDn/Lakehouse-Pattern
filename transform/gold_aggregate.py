@@ -97,7 +97,11 @@ def run() -> None:
     _write(build_customer_ltv(silver), paths.GOLD_CUSTOMER_LTV)
     _register_views(spark)
 
-    _log.info("Gold marts written: daily_revenue=%s customer_ltv=%s", paths.GOLD_DAILY_REVENUE, paths.GOLD_CUSTOMER_LTV)
+    _log.info(
+        "Gold marts written: daily_revenue=%s customer_ltv=%s",
+        paths.GOLD_DAILY_REVENUE,
+        paths.GOLD_CUSTOMER_LTV,
+    )
 
 
 if __name__ == "__main__":

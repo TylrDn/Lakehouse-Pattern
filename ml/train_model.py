@@ -73,7 +73,11 @@ def load_features() -> pd.DataFrame:
     df["lag_1"] = df.groupby("country")["gross_revenue"].shift(1)
     df["lag_7"] = df.groupby("country")["gross_revenue"].shift(7)
     df["rolling_3"] = (
-        df.groupby("country")["gross_revenue"].shift(1).rolling(3).mean().reset_index(drop=True)
+        df.groupby("country")["gross_revenue"]
+        .shift(1)
+        .rolling(3)
+        .mean()
+        .reset_index(drop=True)
     )
     df["day_of_week"] = pd.to_datetime(df["event_date"]).dt.dayofweek
     df = df.dropna().reset_index(drop=True)
@@ -92,14 +96,23 @@ def train(n_estimators: int = 200, max_depth: int | None = 8) -> str:
             "No training rows after feature engineering. Gold daily_revenue is "
             "likely empty or too short to derive lag features \u2014 run the ETL first."
         )
-    feature_cols = ["lag_1", "lag_7", "rolling_3", "day_of_week", "order_count", "unique_customers"]
+    feature_cols = [
+        "lag_1",
+        "lag_7",
+        "rolling_3",
+        "day_of_week",
+        "order_count",
+        "unique_customers",
+    ]
     # Cast integer columns to float64 so the MLflow-inferred signature can
     # represent missing values at inference time. Integer columns in pandas
     # cannot hold NaN, which trips MLflow's schema enforcement in serving.
     x = features[feature_cols].astype("float64")
     y = features["gross_revenue"].astype("float64")
 
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+    x_train, x_test, y_train, y_test = train_test_split(
+        x, y, test_size=0.2, random_state=42
+    )
 
     with mlflow.start_run() as run:
         mlflow.log_params(

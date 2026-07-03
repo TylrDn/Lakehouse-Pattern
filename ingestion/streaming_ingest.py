@@ -78,7 +78,9 @@ def run(once: bool = True) -> StreamingQuery:
     # ``availableNow`` = process everything currently on disk and stop.
     # For a truly-continuous stream use ``.trigger(processingTime="30 seconds")``.
     query = (
-        writer.trigger(availableNow=True) if once else writer.trigger(processingTime="30 seconds")
+        writer.trigger(availableNow=True)
+        if once
+        else writer.trigger(processingTime="30 seconds")
     ).start(str(paths.BRONZE_TRANSACTIONS))
 
     query.awaitTermination()

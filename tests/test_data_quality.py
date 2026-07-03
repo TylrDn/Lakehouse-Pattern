@@ -24,9 +24,9 @@ def _seed_raw(tmp_lakehouse):
         "T-1,C-1,SKU-1,2,10.00,USD,2025-01-01 10:00:00,us",
         "T-2,C-2,SKU-1,1,5.00,USD,2025-01-01 11:00:00,us",
         "T-1,C-1,SKU-1,2,10.00,USD,2025-01-01 10:00:00,us",  # dup
-        "T-3,,SKU-2,1,9.99,USD,2025-01-02 09:00:00,us",       # null cust
-        "T-4,C-3,SKU-3,-1,9.99,USD,2025-01-02 09:00:00,us",   # neg qty
-        "T-5,C-4,SKU-4,1,1.00,USD,not-a-date,us",             # bad ts
+        "T-3,,SKU-2,1,9.99,USD,2025-01-02 09:00:00,us",  # null cust
+        "T-4,C-3,SKU-3,-1,9.99,USD,2025-01-02 09:00:00,us",  # neg qty
+        "T-5,C-4,SKU-4,1,1.00,USD,not-a-date,us",  # bad ts
     ]
     p.write_text("\n".join(rows) + "\n")
     return p

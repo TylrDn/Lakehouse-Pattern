@@ -40,7 +40,14 @@ from dataclasses import dataclass, field
 from typing import Callable
 
 from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql.functions import col, current_timestamp, to_date, to_timestamp, trim, lower
+from pyspark.sql.functions import (
+    col,
+    current_timestamp,
+    to_date,
+    to_timestamp,
+    trim,
+    lower,
+)
 
 from lakehouse import paths
 from lakehouse.env import get_logger
@@ -107,8 +114,10 @@ def _silver(spark: SparkSession) -> DataFrame:
 
 def _gold_daily(spark: SparkSession) -> DataFrame:
     silver = spark.read.format("delta").load(str(paths.SILVER_TRANSACTIONS))
-    return silver.groupBy("event_date", "country").sum("revenue").withColumnRenamed(
-        "sum(revenue)", "gross_revenue"
+    return (
+        silver.groupBy("event_date", "country")
+        .sum("revenue")
+        .withColumnRenamed("sum(revenue)", "gross_revenue")
     )
 
 
@@ -144,7 +153,9 @@ def run() -> None:
         df = step.transform(spark)
         for exp in step.expectations:
             df = exp.apply(df)
-        writer = df.write.format("delta").mode("overwrite").option("overwriteSchema", "true")
+        writer = (
+            df.write.format("delta").mode("overwrite").option("overwriteSchema", "true")
+        )
         if step.partition_by:
             writer = writer.partitionBy(*step.partition_by)
         writer.save(step.target_path)

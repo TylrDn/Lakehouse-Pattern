@@ -23,7 +23,9 @@ from lakehouse.env import check_prerequisites, get_logger
 _log = get_logger("lakehouse.spark")
 
 
-def get_spark(app_name: str = "lakehouse-pattern", shuffle_partitions: int = 4) -> SparkSession:
+def get_spark(
+    app_name: str = "lakehouse-pattern", shuffle_partitions: int = 4
+) -> SparkSession:
     """Return a Delta-enabled SparkSession, creating it on first call.
 
     Parameters
@@ -74,7 +76,12 @@ def get_spark(app_name: str = "lakehouse-pattern", shuffle_partitions: int = 4) 
 
     spark = builder.getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
-    _log.info("Spark %s ready (app=%s, shuffle=%d)", spark.version, app_name, shuffle_partitions)
+    _log.info(
+        "Spark %s ready (app=%s, shuffle=%d)",
+        spark.version,
+        app_name,
+        shuffle_partitions,
+    )
     return spark
 
 

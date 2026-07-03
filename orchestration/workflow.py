@@ -70,9 +70,21 @@ def _download() -> None:
 
 TASKS: list[Task] = [
     Task("download_data", _download),
-    Task("bronze_batch_ingest", _import_and_call("ingestion.batch_ingest"), depends_on=["download_data"]),
-    Task("silver_clean", _import_and_call("transform.silver_clean"), depends_on=["bronze_batch_ingest"]),
-    Task("gold_aggregate", _import_and_call("transform.gold_aggregate"), depends_on=["silver_clean"]),
+    Task(
+        "bronze_batch_ingest",
+        _import_and_call("ingestion.batch_ingest"),
+        depends_on=["download_data"],
+    ),
+    Task(
+        "silver_clean",
+        _import_and_call("transform.silver_clean"),
+        depends_on=["bronze_batch_ingest"],
+    ),
+    Task(
+        "gold_aggregate",
+        _import_and_call("transform.gold_aggregate"),
+        depends_on=["silver_clean"],
+    ),
     Task(
         "ml_train",
         _import_and_call("ml.train_model", "train"),
@@ -109,7 +121,9 @@ def _topo_order(tasks: list[Task]) -> list[Task]:
 def run(skip_ml: bool = False) -> None:
     tasks = [t for t in TASKS if not (skip_ml and t.name.startswith("ml_"))]
     ordered = _topo_order(tasks)
-    _log.info("DAG start (%d tasks%s)", len(ordered), "; skip_ml=True" if skip_ml else "")
+    _log.info(
+        "DAG start (%d tasks%s)", len(ordered), "; skip_ml=True" if skip_ml else ""
+    )
     started = time.monotonic()
     for task in ordered:
         for attempt in range(1, task.max_attempts + 1):

@@ -56,7 +56,11 @@ def register(promote_to: str = "Staging") -> None:
             "No MLflow runs found for experiment '"
             f"{EXPERIMENT_NAME}'. Run `python -m ml.train_model` first."
         )
-    _log.info("Best run: %s (mae=%.2f)", best.info.run_id, best.data.metrics.get("mae", float("nan")))
+    _log.info(
+        "Best run: %s (mae=%.2f)",
+        best.info.run_id,
+        best.data.metrics.get("mae", float("nan")),
+    )
 
     model_uri = f"runs:/{best.info.run_id}/model"
     result = mlflow.register_model(model_uri, MODEL_NAME)
@@ -71,7 +75,9 @@ def register(promote_to: str = "Staging") -> None:
         )
         _log.info("Transitioned v%s -> %s", result.version, promote_to)
     except Exception as exc:  # pragma: no cover - newer MLflow deprecates stages
-        _log.warning("Stage transition skipped (%s); alias 'champion' set instead.", exc)
+        _log.warning(
+            "Stage transition skipped (%s); alias 'champion' set instead.", exc
+        )
 
 
 if __name__ == "__main__":

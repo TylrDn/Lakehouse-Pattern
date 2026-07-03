@@ -42,12 +42,19 @@ def test_time_travel_returns_earlier_snapshot(spark, tmp_lakehouse):
 
     _seed_raw(tmp_lakehouse)
     batch_ingest.run()
-    v0 = spark.read.format("delta").option("versionAsOf", 0).load(str(paths.BRONZE_TRANSACTIONS)).count()
+    v0 = (
+        spark.read.format("delta")
+        .option("versionAsOf", 0)
+        .load(str(paths.BRONZE_TRANSACTIONS))
+        .count()
+    )
 
     batch_ingest.run()  # append again
     latest = spark.read.format("delta").load(str(paths.BRONZE_TRANSACTIONS)).count()
 
-    assert latest == 2 * v0, "Bronze is append-only; second ingest should double the row count"
+    assert (
+        latest == 2 * v0
+    ), "Bronze is append-only; second ingest should double the row count"
 
 
 def test_schema_enforcement_rejects_bad_write(spark, tmp_lakehouse):
