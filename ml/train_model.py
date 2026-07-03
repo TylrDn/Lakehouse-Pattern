@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import tempfile
 from pathlib import Path
 
 import mlflow
@@ -36,10 +37,25 @@ from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 
 from lakehouse import paths
+from lakehouse.env import get_logger
 from lakehouse.spark import get_spark
+
+_log = get_logger("ml.train_model")
 
 EXPERIMENT_NAME = "lakehouse-pattern-daily-revenue"
 MODEL_ARTIFACT_PATH = "model"
+
+
+def _default_tracking_uri() -> str:
+    """Anchor MLflow at ``<repo-root>/mlruns`` unless overridden.
+
+    We resolve to the *parent* of ``LAKEHOUSE_ROOT`` (which defaults to
+    ``./data``) so the mlruns directory sits next to ``data/`` at the repo
+    root, not inside it. Overridable via ``MLFLOW_TRACKING_URI``.
+    """
+    return os.environ.get(
+        "MLFLOW_TRACKING_URI", f"file://{paths.LAKEHOUSE_ROOT.parent}/mlruns"
+    )
 
 
 def load_features() -> pd.DataFrame:
@@ -66,17 +82,22 @@ def load_features() -> pd.DataFrame:
 
 def train(n_estimators: int = 200, max_depth: int | None = 8) -> str:
     """Train + log a run. Returns the MLflow run_id."""
-    tracking_uri = os.environ.get(
-        "MLFLOW_TRACKING_URI", f"file://{paths.LAKEHOUSE_ROOT.parent}/mlruns"
-    )
-    mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_tracking_uri(_default_tracking_uri())
     mlflow.set_experiment(EXPERIMENT_NAME)
     mlflow.sklearn.autolog(log_models=False, disable=False)
 
     features = load_features()
+    if features.empty:
+        raise RuntimeError(
+            "No training rows after feature engineering. Gold daily_revenue is "
+            "likely empty or too short to derive lag features \u2014 run the ETL first."
+        )
     feature_cols = ["lag_1", "lag_7", "rolling_3", "day_of_week", "order_count", "unique_customers"]
-    x = features[feature_cols]
-    y = features["gross_revenue"]
+    # Cast integer columns to float64 so the MLflow-inferred signature can
+    # represent missing values at inference time. Integer columns in pandas
+    # cannot hold NaN, which trips MLflow's schema enforcement in serving.
+    x = features[feature_cols].astype("float64")
+    y = features["gross_revenue"].astype("float64")
 
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 
@@ -108,14 +129,15 @@ def train(n_estimators: int = 200, max_depth: int | None = 8) -> str:
             input_example=x_train.head(3),
         )
 
-        # Log the feature list as a text artifact so the register step can
-        # reconstruct the model interface without magic constants.
-        (Path("mlruns") / "features.txt").parent.mkdir(exist_ok=True)
-        with open("mlruns/features.txt", "w") as f:
-            f.write("\n".join(feature_cols))
-        mlflow.log_artifact("mlruns/features.txt")
+        # Log the feature list as a text artifact so downstream consumers can
+        # reconstruct the model interface without magic constants. We use a
+        # temp file so nothing lands in the working directory.
+        with tempfile.TemporaryDirectory() as td:
+            features_file = Path(td) / "features.txt"
+            features_file.write_text("\n".join(feature_cols))
+            mlflow.log_artifact(str(features_file))
 
-        print(f"MLflow run {run.info.run_id}: MAE={mae:.2f}, R2={r2:.3f}")
+        _log.info("MLflow run %s: MAE=%.2f R2=%.3f", run.info.run_id, mae, r2)
         return run.info.run_id
 
 

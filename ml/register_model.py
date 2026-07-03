@@ -22,6 +22,9 @@ import mlflow
 from mlflow.tracking import MlflowClient
 
 from lakehouse import paths
+from lakehouse.env import get_logger
+
+_log = get_logger("ml.register_model")
 
 MODEL_NAME = "daily_revenue_forecaster"
 EXPERIMENT_NAME = "lakehouse-pattern-daily-revenue"
@@ -50,13 +53,14 @@ def register(promote_to: str = "Staging") -> None:
     best = _best_run(client)
     if best is None:
         raise RuntimeError(
-            "No runs found. Run `python -m ml.train_model` before registering."
+            "No MLflow runs found for experiment '"
+            f"{EXPERIMENT_NAME}'. Run `python -m ml.train_model` first."
         )
-    print(f"Best run: {best.info.run_id} (mae={best.data.metrics.get('mae'):.2f})")
+    _log.info("Best run: %s (mae=%.2f)", best.info.run_id, best.data.metrics.get("mae", float("nan")))
 
     model_uri = f"runs:/{best.info.run_id}/model"
     result = mlflow.register_model(model_uri, MODEL_NAME)
-    print(f"Registered {MODEL_NAME} v{result.version}")
+    _log.info("Registered %s v%s", MODEL_NAME, result.version)
 
     # Stage transitions are deprecated in newer MLflow in favor of aliases;
     # we set both for maximum reviewer clarity.
@@ -65,9 +69,9 @@ def register(promote_to: str = "Staging") -> None:
         client.transition_model_version_stage(
             name=MODEL_NAME, version=result.version, stage=promote_to
         )
-        print(f"Transitioned v{result.version} -> {promote_to}")
+        _log.info("Transitioned v%s -> %s", result.version, promote_to)
     except Exception as exc:  # pragma: no cover - newer MLflow deprecates stages
-        print(f"Stage transition skipped ({exc}); using alias 'champion' instead.")
+        _log.warning("Stage transition skipped (%s); alias 'champion' set instead.", exc)
 
 
 if __name__ == "__main__":
