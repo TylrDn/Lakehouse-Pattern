@@ -1,0 +1,50 @@
+# Minimal packaging so the local modules are importable deterministically
+# (via `pip install -e .`) from any working directory, and so pytest resolves
+# them without relying on implicit rootdir injection. Intentionally NOT a src/
+# layout — that restructure is out of scope for the launch sprint.
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lakehouse-pattern"
+version = "0.1.0"
+description = "Reference implementation of the Databricks lakehouse pattern on open-source tooling."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+# Runtime dependencies live in requirements.txt (single source of truth,
+# guarded against CI drift by tests/test_requirements_ci.py). Read them
+# dynamically so we never duplicate the pins here.
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+# Explicit discovery of the flat-layout packages; excludes non-shipping dirs.
+[tool.setuptools.packages.find]
+include = [
+    "lakehouse*",
+    "ingestion*",
+    "transform*",
+    "ml*",
+    "orchestration*",
+    "pipelines*",
+    "serving*",
+    "data*",
+]
+exclude = ["tests*", "benchmarks*", "docs*", "notebooks*", "governance*"]
+
+# Migrated from pytest.ini. `pythonpath = ["."]` makes local-package imports
+# explicit rather than depending on pytest's implicit rootdir behavior.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra --tb=short"
+markers = [
+    "slow: heavy tests that need the full ML stack (mlflow, torch, chromadb); run in the nightly workflow, excluded from the fast PR lane.",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]

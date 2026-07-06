@@ -50,6 +50,16 @@ jobs:
           # shipped stack.
           pip install -r requirements-ci.txt
 
+      - name: Editable install + import smoke (P0-3)
+        # Verifies the package is installable and its modules import from an
+        # arbitrary CWD. --no-deps keeps the fast lane fast (deps already
+        # installed above); running from $RUNNER_TEMP proves imports don't
+        # depend on being in the repo root.
+        run: |
+          pip install -e . --no-deps
+          cd "$RUNNER_TEMP"
+          python -c "import lakehouse, ingestion, transform, ml, orchestration, pipelines, serving; print('imports OK')"
+
       - name: Lint
         run: ruff check .
 
