@@ -264,9 +264,9 @@ Hive Metastore + Workflows instead.
 | `ml/` | MLflow tracking (`train_model.py`), Model Registry (`register_model.py`), OSS RAG (`rag_demo/`) |
 | `serving/` | Streamlit gold-layer explorer — Databricks Apps analog |
 | `orchestration/` | DAG runner with retry semantics — Databricks Workflows analog |
-| `tests/` | Unit tests + end-to-end data-quality tests + Delta-feature sanity tests |
+| `tests/` | Unit + end-to-end tests: transforms, data quality, Delta features, orchestration, declarative pipeline, streaming, and pure ML/serving logic |
 | `docs/` | `architecture.md` deep-dive + `concept-coverage.md` traceability matrix |
-| `.github/workflows/` | CI: ruff + pytest on every push/PR |
+| `.github/workflows/` | `ci.yml` (ruff + import smoke + pytest w/ coverage on Python 3.11 & 3.12) and `nightly.yml` (full-stack `make ml` / `make rag` smoke) |
 
 ## Databricks concept coverage
 
@@ -296,7 +296,9 @@ Hive Metastore + Workflows instead.
 | AI/BI Genie (NL-to-SQL) | 🚧 Extension point | See roadmap |
 | Lakebase / OLTP | 🚧 Extension point | See roadmap |
 | Delta Sharing | 🚧 Extension point | See roadmap |
-| Query federation | 🚧 Extension point | See roadmap |
+| Query federation | 🚧 Extension point | See roadmap §4 |
+| Model Serving endpoint (deployed) | 🚧 Extension point | See roadmap §5 |
+| Real dataset ingestion (UCI Online Retail II) | 🚧 Extension point | See roadmap §6 |
 | Serverless SQL | 📄 Documented cost impact | `docs/architecture.md#cost-model` |
 
 Legend: ✅ implemented • 🧩 OSS analog for a closed-source Databricks
@@ -305,8 +307,9 @@ extension point.
 
 ## Roadmap / extension points
 
-Each of these is deliberately out of scope for this repo, but I have a design
-sketch for each — happy to whiteboard any of them in an interview.
+Each of these is a clearly-scoped extension point, deliberately **out of scope
+for v1.0** — documented with a design sketch rather than implemented, so the
+launch story is an honest "here's what's next." Happy to whiteboard any of them.
 
 1. **Lakebase / OLTP surface.** Attach a managed Postgres to the same
    catalog; write low-latency lookups (e.g., real-time customer_ltv) via

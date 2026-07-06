@@ -67,12 +67,14 @@ walk the codebase feature by feature.
 
 | Concept | Status | Proof |
 | --- | --- | --- |
-| CI/CD | ✅ | [`.github/workflows/ci.yml`](https://github.com/TylrDn/Lakehouse-Pattern/blob/main/.github/workflows/ci.yml) — ruff + preflight + pytest |
+| CI/CD | ✅ | [`.github/workflows/ci.yml`](https://github.com/TylrDn/Lakehouse-Pattern/blob/main/.github/workflows/ci.yml) — ruff + editable-install import smoke + pytest (with coverage) + ETL smoke, on Python 3.11 & 3.12 |
+| Nightly heavy job (ML/RAG smoke) | ✅ | [`.github/workflows/nightly.yml`](https://github.com/TylrDn/Lakehouse-Pattern/blob/main/.github/workflows/nightly.yml) — full stack + `make ml` / `make rag` |
+| Coverage reporting | ✅ | `make test-cov`; `pytest-cov` in CI (non-blocking baseline) |
 | Docs site auto-deploy | ✅ | [`.github/workflows/docs.yml`](https://github.com/TylrDn/Lakehouse-Pattern/blob/main/.github/workflows/docs.yml) — MkDocs Material → GitHub Pages |
 | Release automation | ✅ | [`.github/workflows/release.yml`](https://github.com/TylrDn/Lakehouse-Pattern/blob/main/.github/workflows/release.yml) — tags → GitHub Releases |
 | Dependabot | ✅ | [`.github/dependabot.yml`](https://github.com/TylrDn/Lakehouse-Pattern/blob/main/.github/dependabot.yml) — weekly pip + actions bumps |
 | Pre-commit hooks | ✅ | [`.pre-commit-config.yaml`](https://github.com/TylrDn/Lakehouse-Pattern/blob/main/.pre-commit-config.yaml) |
-| Unit + integration tests | ✅ | [`tests/`](https://github.com/TylrDn/Lakehouse-Pattern/tree/main/tests) — 17 tests, all pass in ~4 min |
+| Unit + integration tests | ✅ | [`tests/`](https://github.com/TylrDn/Lakehouse-Pattern/tree/main/tests) — unit + end-to-end coverage of transforms, Delta features, orchestration, declarative pipeline, streaming, and pure ML/serving logic |
 | Data-quality tests | ✅ | [`tests/test_data_quality.py`](https://github.com/TylrDn/Lakehouse-Pattern/blob/main/tests/test_data_quality.py) |
 | Java 17 preflight | ✅ | [`lakehouse/env.py`](https://github.com/TylrDn/Lakehouse-Pattern/blob/main/lakehouse/env.py) |
 | Structured logger | ✅ | Same file — used across every module |
