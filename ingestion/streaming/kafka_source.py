@@ -19,7 +19,6 @@ this module demonstrates the "always-on" side of Databricks streaming:
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import (

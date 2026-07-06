@@ -30,7 +30,6 @@ from functools import lru_cache
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import udf
 from pyspark.sql.types import (
-    ArrayType,
     DoubleType,
     MapType,
     StringType,

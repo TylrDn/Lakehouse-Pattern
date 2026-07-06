@@ -13,7 +13,6 @@ Direct URL: https://archive.ics.uci.edu/static/public/502/online+retail+ii.zip
 from __future__ import annotations
 
 import argparse
-import hashlib
 import io
 import shutil
 import urllib.request

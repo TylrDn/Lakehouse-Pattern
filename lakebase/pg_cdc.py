@@ -14,10 +14,7 @@ from __future__ import annotations
 
 import argparse
 
-from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, from_json
 
-from governance.local_uc.secrets import get as get_secret
 from lakehouse import paths
 from lakehouse.env import get_logger
 from lakehouse.spark import get_spark
