@@ -1,0 +1,11 @@
+{
+  "environment_key": "lakehouse-pattern-serverless",
+  "environment_spec": {
+    "client": "3",
+    "dependencies": [
+      "delta-spark==3.2.1",
+      "mlflow==2.14.0",
+      "chromadb==0.5.5"
+    ]
+  }
+}

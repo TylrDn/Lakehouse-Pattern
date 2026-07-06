@@ -1,0 +1,28 @@
+# Optional extras for concept-coverage v2 (see docs/upgrade-plan/README.md).
+# Install with:  pip install -r requirements.txt -r requirements-upgrade.txt
+#
+# These are grouped by task so you can install only what you need.
+
+# --- Orchestration (task 3) ---
+dagster==1.8.7
+dagster-webserver==1.8.7
+# apache-airflow==2.10.5   # heavy; opt-in
+
+# --- Kafka streaming (task 18) ---
+# The Spark Kafka source is a JAR, loaded via spark.jars.packages at runtime.
+# No PyPI package required. Redpanda / Confluent locally: see docker-compose.
+
+# --- Vector search (task 8) ---
+hnswlib==0.8.0
+
+# --- AI Functions + Genie (tasks 9, 10) ---
+sqlglot==25.30.0
+
+# --- Delta Sharing client (task 11) ---
+delta-sharing==1.2.0
+
+# --- Federation + Lakebase (tasks 12, 13) ---
+psycopg2-binary==2.9.10
+
+# --- UCI dataset (task 17) ---
+openpyxl==3.1.5

@@ -1,0 +1,5 @@
+{
+  "tokens": [
+    {"name": "external_analyst_demo", "token": "REPLACE_ME_WITH_JWT_IN_PROD"}
+  ]
+}
