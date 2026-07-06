@@ -4,7 +4,7 @@
 PYTHON ?= python
 PIP    ?= pip
 
-.PHONY: help setup preflight lint format test data bronze stream silver gold pipeline \
+.PHONY: help setup preflight lint format test test-cov data bronze stream silver gold pipeline \
         declarative ml rag serve orchestrate dag clean ci docs docs-serve bench bench-ml
 
 help:
@@ -24,6 +24,7 @@ help:
 	@echo "  orchestrate  Run the DAG orchestrator (all steps)"
 	@echo "  dag          Run the DAG orchestrator, skipping ML tasks"
 	@echo "  test         Run pytest suite"
+	@echo "  test-cov     Run pytest with coverage (term-missing + coverage.xml)"
 	@echo "  lint         Run ruff"
 	@echo "  ci           lint + test (what CI runs)"
 	@echo "  docs         Build the MkDocs site into site/ (open site/index.html)"
@@ -78,6 +79,9 @@ dag:
 
 test:
 	pytest -q
+
+test-cov:
+	pytest --cov=. --cov-report=term-missing --cov-report=xml
 
 lint:
 	ruff check .
