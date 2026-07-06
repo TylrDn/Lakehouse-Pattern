@@ -69,7 +69,11 @@ jobs:
           # Explicitly point PySpark at the Java installed above so the
           # preflight in lakehouse.env sees the right runtime.
           JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
-        run: pytest -q -k "not rag and not mlflow"
+        # Coverage is measured and printed but NOT gated this sprint (no
+        # --cov-fail-under) so it can't block the launch; raise a threshold
+        # post-launch. Note the fast lane excludes rag/mlflow + ml paths, so
+        # the number is a floor, not the full picture (nightly covers the rest).
+        run: pytest -q -k "not rag and not mlflow" --cov=. --cov-report=term-missing --cov-report=xml
 
       - name: Smoke-test the ETL DAG
         env:

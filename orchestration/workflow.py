@@ -132,7 +132,7 @@ def run(skip_ml: bool = False) -> None:
                 task.run()
                 _log.info("%s OK", task.name)
                 break
-            except Exception as exc:  # pragma: no cover - retry path
+            except Exception as exc:
                 _log.error("%s FAILED: %s", task.name, exc)
                 if attempt == task.max_attempts:
                     _log.error("DAG aborted after %.1fs", time.monotonic() - started)

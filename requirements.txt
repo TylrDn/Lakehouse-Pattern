@@ -31,4 +31,5 @@ pyarrow==23.0.1
 # Dev tooling
 # pytest 9.0.3 patches the tmpdir permissions issue (CVE-2024-8811 equivalent).
 pytest==9.0.3
+pytest-cov==7.1.0
 ruff==0.5.6
