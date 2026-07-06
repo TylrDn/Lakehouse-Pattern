@@ -8,8 +8,8 @@ delta-spark==3.2.1
 # MLflow 3.11.1 patches the tracking-server and artifact-handler CVE clusters.
 # Client APIs used here (log_param, log_metric, sklearn.log_model, register_model)
 # are stable across the 2.x -> 3.x migration.
-mlflow==3.11.1
-scikit-learn==1.5.1
+mlflow==3.14.0
+scikit-learn==1.9.0
 pandas==2.2.2
 numpy==1.26.4
 
@@ -19,7 +19,7 @@ sentence-transformers==3.0.1
 
 # Serving demo
 # 1.54.0 patches CVE-2025 SSRF on Windows and older path-traversal issue.
-streamlit==1.54.0
+streamlit==1.58.0
 
 # Data loading helper
 # requests 2.34.2 patches netrc credential leak (CVE-2024-35195) and
@@ -30,6 +30,6 @@ pyarrow==23.0.1
 
 # Dev tooling
 # pytest 9.0.3 patches the tmpdir permissions issue (CVE-2024-8811 equivalent).
-pytest==9.0.3
+pytest==9.1.1
 pytest-cov==7.1.0
-ruff==0.5.6
+ruff==0.15.20
