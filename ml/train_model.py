@@ -28,17 +28,15 @@ import os
 import tempfile
 from pathlib import Path
 
-import mlflow
-import mlflow.sklearn
 import pandas as pd
-from mlflow.models.signature import infer_signature
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_absolute_error, r2_score
-from sklearn.model_selection import train_test_split
 
 from lakehouse import paths
 from lakehouse.env import get_logger
-from lakehouse.spark import get_spark
+
+# mlflow + scikit-learn (and the Spark session) are imported lazily inside the
+# functions that need them so this module can be imported — and its pure
+# feature-engineering logic unit-tested — in the fast CI lane without the heavy
+# ML stack or a Spark bootstrap.
 
 _log = get_logger("ml.train_model")
 
@@ -58,18 +56,15 @@ def _default_tracking_uri() -> str:
     )
 
 
-def load_features() -> pd.DataFrame:
-    """Read Gold daily_revenue and engineer lag features."""
-    spark = get_spark("ml-train")
-    df = (
-        spark.read.format("delta")
-        .load(str(paths.GOLD_DAILY_REVENUE))
-        .toPandas()
-        .sort_values(["country", "event_date"])
-        .reset_index(drop=True)
-    )
+def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Add lag / rolling / day-of-week features to a daily_revenue frame.
 
-    # Lag + rolling features per country.
+    Pure function of the input DataFrame (no IO), so it is unit-testable
+    without Spark or the ML stack. Behavior is identical to the original
+    inline logic: sort, derive per-country lag/rolling features, add
+    day-of-week, then drop rows with NaNs introduced by the lags.
+    """
+    df = df.sort_values(["country", "event_date"]).reset_index(drop=True)
     df["lag_1"] = df.groupby("country")["gross_revenue"].shift(1)
     df["lag_7"] = df.groupby("country")["gross_revenue"].shift(7)
     df["rolling_3"] = (
@@ -80,12 +75,27 @@ def load_features() -> pd.DataFrame:
         .reset_index(drop=True)
     )
     df["day_of_week"] = pd.to_datetime(df["event_date"]).dt.dayofweek
-    df = df.dropna().reset_index(drop=True)
-    return df
+    return df.dropna().reset_index(drop=True)
+
+
+def load_features() -> pd.DataFrame:
+    """Read Gold daily_revenue and engineer lag features."""
+    from lakehouse.spark import get_spark
+
+    spark = get_spark("ml-train")
+    df = spark.read.format("delta").load(str(paths.GOLD_DAILY_REVENUE)).toPandas()
+    return engineer_features(df)
 
 
 def train(n_estimators: int = 200, max_depth: int | None = 8) -> str:
     """Train + log a run. Returns the MLflow run_id."""
+    import mlflow
+    import mlflow.sklearn
+    from mlflow.models.signature import infer_signature
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.metrics import mean_absolute_error, r2_score
+    from sklearn.model_selection import train_test_split
+
     mlflow.set_tracking_uri(_default_tracking_uri())
     mlflow.set_experiment(EXPERIMENT_NAME)
     mlflow.sklearn.autolog(log_models=False, disable=False)
