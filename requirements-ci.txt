@@ -8,7 +8,7 @@
 pyspark==3.5.8
 delta-spark==3.2.1
 pandas==2.2.2
-pyarrow==23.0.1
+pyarrow==24.0.0
 pytest==9.0.3
 pytest-cov==7.1.0
 ruff==0.5.6
