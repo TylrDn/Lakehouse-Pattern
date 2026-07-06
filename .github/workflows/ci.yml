@@ -18,8 +18,12 @@ jobs:
   lint-and-test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.11"]
+        # 3.11 is primary. 3.12 is under investigation: pyspark 3.5.x can be
+        # flaky on 3.12 — if this leg fails, drop it and scope the README badge
+        # to 3.11 (see P1-6).
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
 
