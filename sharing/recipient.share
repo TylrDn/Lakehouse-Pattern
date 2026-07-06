@@ -1,0 +1,6 @@
+{
+  "shareCredentialsVersion": 1,
+  "endpoint": "http://localhost:5001/delta-sharing/",
+  "bearerToken": "REPLACE_ME_WITH_JWT_IN_PROD",
+  "expirationTime": "2030-01-01T00:00:00Z"
+}

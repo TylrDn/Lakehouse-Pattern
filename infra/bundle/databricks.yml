@@ -1,0 +1,94 @@
+# Databricks Asset Bundle (DAB) — the current recommended deploy path.
+#
+# `databricks bundle deploy -t prod` uploads this workspace's notebooks,
+# jobs, pipelines, and permissions atomically. It replaces the older
+# `dbx`/API-scripting approach.
+
+bundle:
+  name: lakehouse-pattern
+  git:
+    branch: main
+    origin_url: https://github.com/TylrDn/Lakehouse-Pattern
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: "UC catalog"
+    default: main
+  bronze_schema:
+    default: lakehouse_pattern_bronze
+  silver_schema:
+    default: lakehouse_pattern_silver
+  gold_schema:
+    default: lakehouse_pattern_gold
+
+targets:
+  dev:
+    default: true
+    mode: development
+    workspace:
+      host: https://adb-XXXX.azuredatabricks.net
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-YYYY.azuredatabricks.net
+    run_as:
+      service_principal_name: sp-lakehouse-pattern
+
+resources:
+  jobs:
+    lakehouse_daily:
+      name: lakehouse-daily-refresh
+      schedule:
+        quartz_cron_expression: "0 0 2 * * ?"
+        timezone_id: "UTC"
+      tasks:
+        - task_key: bronze
+          notebook_task:
+            notebook_path: ../../notebooks/databricks_style/01_bronze.py
+          job_cluster_key: jobs_cluster
+        - task_key: silver
+          depends_on:
+            - task_key: bronze
+          notebook_task:
+            notebook_path: ../../notebooks/databricks_style/02_silver.py
+          job_cluster_key: jobs_cluster
+        - task_key: gold
+          depends_on:
+            - task_key: silver
+          notebook_task:
+            notebook_path: ../../notebooks/databricks_style/03_gold.py
+          job_cluster_key: jobs_cluster
+        - task_key: ml
+          depends_on:
+            - task_key: gold
+          python_wheel_task:
+            package_name: lakehouse_pattern
+            entry_point: ml.train_model:train
+          job_cluster_key: jobs_cluster
+      job_clusters:
+        - job_cluster_key: jobs_cluster
+          new_cluster:
+            spark_version: 15.4.x-scala2.12
+            node_type_id: Standard_D4s_v5
+            autoscale: {min_workers: 2, max_workers: 8}
+            runtime_engine: PHOTON
+
+  pipelines:
+    silver_dlt:
+      name: lakehouse-silver-dlt
+      catalog: ${var.catalog}
+      target: ${var.silver_schema}
+      libraries:
+        - notebook:
+            path: ../../pipelines/declarative_pipeline.py
+      continuous: false
+      photon: true
+
+permissions:
+  - level: CAN_MANAGE
+    group_name: data-platform
+  - level: CAN_VIEW
+    group_name: analysts

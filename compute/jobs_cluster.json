@@ -1,0 +1,8 @@
+{
+  "cluster_name": "lakehouse-pattern-jobs",
+  "spark_version": "15.4.x-scala2.12",
+  "node_type_id": "Standard_D4s_v5",
+  "autoscale": {"min_workers": 2, "max_workers": 8},
+  "runtime_engine": "PHOTON",
+  "custom_tags": {"team": "data-platform", "env": "prod", "tier": "jobs"}
+}

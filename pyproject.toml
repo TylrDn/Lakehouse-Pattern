@@ -48,3 +48,10 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
 ]
+
+# Databricks notebook-style files use implicit runtime globals
+# (`dbutils`, `spark`, `display`) that only exist inside a Databricks
+# workspace. They are not real Python modules, so we ignore F821
+# (undefined-name) for that directory. All other lint rules still apply.
+[tool.ruff.lint.per-file-ignores]
+"notebooks/databricks_style/*.py" = ["F821"]

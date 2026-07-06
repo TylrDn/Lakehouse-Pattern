@@ -1,0 +1,9 @@
+{
+  "name": "lakehouse-pattern-sqlwh",
+  "cluster_size": "Small",
+  "auto_stop_mins": 10,
+  "enable_photon": true,
+  "enable_serverless_compute": true,
+  "warehouse_type": "PRO",
+  "tags": {"team": "analytics"}
+}

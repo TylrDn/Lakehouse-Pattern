@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "shares": [
+    {
+      "name": "lakehouse_pattern_public",
+      "schemas": [
+        {
+          "name": "gold",
+          "tables": [
+            {
+              "name": "daily_revenue",
+              "location": "file:///app/data/gold/daily_revenue",
+              "history_shared": false
+            },
+            {
+              "name": "customer_ltv",
+              "location": "file:///app/data/gold/customer_ltv",
+              "history_shared": false,
+              "column_filter": "NOT column_tags CONTAINS 'pii'"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "authorization": {
+    "bearerToken": "file:///app/sharing/bearer_tokens.json"
+  }
+}

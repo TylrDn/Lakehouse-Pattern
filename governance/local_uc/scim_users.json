@@ -1,0 +1,7 @@
+{
+  "alice_analyst":   {"user": "alice_analyst",   "groups": ["analysts"]},
+  "bob_engineer":    {"user": "bob_engineer",    "groups": ["data-engineers"]},
+  "carol_ml":        {"user": "carol_ml",        "groups": ["ml-engineers"]},
+  "dan_admin":       {"user": "dan_admin",       "groups": ["admins"]},
+  "eve_external":    {"user": "eve_external",    "groups": []}
+}

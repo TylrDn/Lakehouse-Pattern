@@ -5,7 +5,9 @@ PYTHON ?= python
 PIP    ?= pip
 
 .PHONY: help setup preflight lint format test test-cov data bronze stream silver gold pipeline \
-        declarative ml rag serve orchestrate dag clean ci docs docs-serve bench bench-ml
+        declarative ml rag serve orchestrate dag clean ci docs docs-serve bench bench-ml \
+        governance cdc scd2 modern-delta incremental dagster airflow features vec ai genie \
+        share federate lakebase bundle uci stream-continuous
 
 help:
 	@echo "Targets:"
@@ -106,7 +108,66 @@ bench-ml:
 	$(PYTHON) benchmarks/run_benchmarks.py --with-ml
 
 clean:
-	rm -rf data/bronze data/silver data/gold data/checkpoints data/downloads
+	rm -rf data/bronze data/silver data/gold data/checkpoints data/downloads data/features
 	rm -rf mlruns mlartifacts spark-warehouse metastore_db derby.log
-	rm -rf ml/rag_demo/chroma_store
+	rm -rf ml/rag_demo/chroma_store ml/vector_search/hnsw.bin ml/vector_search/id_map.pkl
+	rm -rf governance/local_uc/audit_log.jsonl governance/lineage/events.jsonl
+	rm -rf pipelines/incremental/expectations_metrics.jsonl
 	rm -rf site benchmarks/latest.md benchmarks/latest.json
+
+# ---------------------------------------------------------------------------
+# Concept-coverage v2 targets (see docs/upgrade-plan/README.md).
+# ---------------------------------------------------------------------------
+governance:
+	$(PYTHON) -m governance.local_uc.authz
+
+cdc:
+	$(PYTHON) -m transform.cdc.apply_changes
+
+scd2:
+	$(PYTHON) -m transform.scd2.customer_dim
+
+modern-delta:
+	$(PYTHON) -m transform.modern_delta
+
+incremental:
+	$(PYTHON) -m pipelines.incremental.pipeline --once
+
+dagster:
+	dagster dev -f orchestration/dagster_project/definitions.py
+
+airflow:
+	@echo 'Drop orchestration/airflow_dags/lakehouse_dag.py into $$AIRFLOW_HOME/dags/ then start Airflow.'
+
+features:
+	@echo 'Feature Store is a library; use ml.feature_store.store from a pipeline.'
+
+vec:
+	$(PYTHON) -m ml.vector_search.index build
+
+vec-query:
+	$(PYTHON) -m ml.vector_search.index query 'top-spending UK customers'
+
+ai:
+	@echo 'Register AI Functions in a Spark session: from ml.ai_functions.udfs import register_all; register_all(spark).'
+
+genie:
+	streamlit run serving/genie/app.py
+
+share:
+	@echo 'Delta Sharing server is Java-based. See sharing/README.md.'
+
+federate:
+	@echo 'See federation/README.md - requires a running Postgres.'
+
+lakebase:
+	$(PYTHON) -m lakebase.reverse_etl
+
+bundle:
+	@echo 'databricks bundle deploy -t prod (from infra/bundle/).'
+
+uci:
+	$(PYTHON) -m data.uci_online_retail.download
+
+stream-continuous:
+	$(PYTHON) -m ingestion.streaming.kafka_source --continuous
