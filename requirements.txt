@@ -10,7 +10,7 @@ delta-spark==3.2.1
 # are stable across the 2.x -> 3.x migration.
 mlflow==3.14.0
 scikit-learn==1.9.0
-pandas==2.2.2
+pandas==3.0.3
 numpy==1.26.4
 
 # RAG demo (all OSS, runs locally)
