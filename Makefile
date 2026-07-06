@@ -41,7 +41,7 @@ preflight:
 	$(PYTHON) -m lakehouse.env
 
 data:
-	$(PYTHON) data/sample_raw/download.py
+	$(PYTHON) -m data.sample_raw.download
 
 bronze: data
 	$(PYTHON) -m ingestion.batch_ingest
