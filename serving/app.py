@@ -31,6 +31,7 @@ import streamlit as st  # noqa: E402
 
 from lakehouse import paths  # noqa: E402
 from lakehouse.spark import get_spark  # noqa: E402
+from serving.metrics import compute_kpis, revenue_by_country, top_customers  # noqa: E402
 
 
 @st.cache_data(ttl=60)
@@ -63,28 +64,17 @@ def main() -> None:
         )
         return
 
+    kpis = compute_kpis(daily, ltv)
     col1, col2, col3 = st.columns(3)
-    col1.metric("Total gross revenue", f"{daily['gross_revenue'].sum():,.2f}")
-    col2.metric("Orders", f"{int(daily['order_count'].sum()):,}")
-    col3.metric("Unique customers", f"{ltv.shape[0]:,}")
+    col1.metric("Total gross revenue", f"{kpis['gross_revenue']:,.2f}")
+    col2.metric("Orders", f"{kpis['orders']:,}")
+    col3.metric("Unique customers", f"{kpis['unique_customers']:,}")
 
     st.subheader("Revenue over time")
-    chart = (
-        daily.assign(event_date=pd.to_datetime(daily["event_date"]))
-        .pivot_table(
-            index="event_date", columns="country", values="gross_revenue", aggfunc="sum"
-        )
-        .fillna(0)
-    )
-    st.line_chart(chart)
+    st.line_chart(revenue_by_country(daily))
 
     st.subheader("Top 20 customers by lifetime revenue")
-    st.dataframe(
-        ltv.sort_values("lifetime_revenue", ascending=False)
-        .head(20)
-        .reset_index(drop=True),
-        use_container_width=True,
-    )
+    st.dataframe(top_customers(ltv, 20), use_container_width=True)
 
 
 if __name__ == "__main__":

@@ -22,13 +22,14 @@ from __future__ import annotations
 
 import argparse
 import os
-from typing import Optional
-
-import mlflow
-from mlflow.tracking import MlflowClient
+from typing import TYPE_CHECKING, Optional
 
 from lakehouse import paths
 from lakehouse.env import get_logger
+
+if TYPE_CHECKING:
+    import mlflow
+    from mlflow.tracking import MlflowClient
 
 _log = get_logger("ml.register_model")
 
@@ -50,6 +51,9 @@ def _best_run(client: MlflowClient) -> Optional[mlflow.entities.Run]:
 
 
 def register(promote_to: str = "Staging", *, use_legacy_stage: bool = False) -> None:
+    import mlflow
+    from mlflow.tracking import MlflowClient
+
     tracking_uri = os.environ.get(
         "MLFLOW_TRACKING_URI", f"file://{paths.LAKEHOUSE_ROOT.parent}/mlruns"
     )

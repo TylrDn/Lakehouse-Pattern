@@ -27,19 +27,22 @@ from __future__ import annotations
 import argparse
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import chromadb
 
 # Silence chromadb's telemetry — it prints noisy warnings on every call and
-# has nothing to do with our RAG pattern. Must be set BEFORE importing
-# chromadb because it's read at module import.
+# has nothing to do with our RAG pattern. Must be set BEFORE importing chromadb
+# (done lazily inside the functions below) because it's read at chromadb import.
 os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
 
-import chromadb  # noqa: E402
-from chromadb.config import Settings  # noqa: E402
-from sentence_transformers import SentenceTransformer  # noqa: E402
-
+# chromadb + sentence-transformers are imported lazily inside the functions that
+# need them (build_index / retrieve / _chroma_client). This keeps the heavy ML
+# stack out of module import so pure-logic helpers like ``compose_answer`` can
+# be unit-tested in the fast CI lane without installing torch/chromadb.
 from lakehouse import paths
 from lakehouse.env import get_logger
-from lakehouse.spark import get_spark
 
 _log = get_logger("ml.rag")
 
@@ -50,6 +53,8 @@ _EMBED_MODEL = "all-MiniLM-L6-v2"  # small, fast, CPU-friendly
 
 def _documents_from_gold() -> list[dict]:
     """Materialize Gold rows as short natural-language documents."""
+    from lakehouse.spark import get_spark
+
     spark = get_spark("rag-index-build")
     pdf = spark.read.format("delta").load(str(paths.GOLD_CUSTOMER_LTV)).toPandas()
     docs: list[dict] = []
@@ -73,8 +78,11 @@ def _documents_from_gold() -> list[dict]:
     return docs
 
 
-def _chroma_client() -> chromadb.PersistentClient:
+def _chroma_client() -> "chromadb.PersistentClient":
     """Return a Chroma client with telemetry hard-off."""
+    import chromadb
+    from chromadb.config import Settings
+
     return chromadb.PersistentClient(
         path=str(_STORE_DIR),
         settings=Settings(anonymized_telemetry=False),
@@ -83,6 +91,8 @@ def _chroma_client() -> chromadb.PersistentClient:
 
 def build_index() -> None:
     """(Re)build the local Chroma index from Gold."""
+    from sentence_transformers import SentenceTransformer
+
     _STORE_DIR.mkdir(parents=True, exist_ok=True)
     client = _chroma_client()
     # Reset the collection each build so demos are deterministic.
@@ -110,6 +120,8 @@ def build_index() -> None:
 
 def retrieve(question: str, k: int = 3) -> list[dict]:
     """Retrieve top-k grounding docs for a question."""
+    from sentence_transformers import SentenceTransformer
+
     client = _chroma_client()
     coll = client.get_collection(_COLLECTION)
     model = SentenceTransformer(_EMBED_MODEL)
