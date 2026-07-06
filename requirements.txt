@@ -1,7 +1,7 @@
 # Core Spark + Delta stack
 # NOTE: pyspark 3.5.x pairs with delta-spark 3.2.x (matched on the Delta compatibility matrix).
 # 3.5.8 is the latest 3.5.x patch (patches CVE-2024-45855, encryption strength).
-pyspark==3.5.8
+pyspark==4.1.2
 delta-spark==3.2.1
 
 # ML tracking + registry
