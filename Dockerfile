@@ -2,8 +2,8 @@
 # ---------------------------------------------------------------------------
 # Lakehouse-Pattern base image
 #
-# Ships the exact Python + Java combo required by pyspark 3.5.1 / delta-spark
-# 3.2.0. Used by every service in docker-compose.yml (app, mlflow, streamlit)
+# Ships the exact Python + Java combo required by pyspark 3.5.8 / delta-spark
+# 3.2.1. Used by every service in docker-compose.yml (app, mlflow, streamlit)
 # so they share one build layer.
 # ---------------------------------------------------------------------------
 FROM python:3.11-slim-bookworm
