@@ -14,7 +14,7 @@ pandas==2.2.2
 numpy==1.26.4
 
 # RAG demo (all OSS, runs locally)
-chromadb==0.5.5
+chromadb==1.5.9
 sentence-transformers==3.0.1
 
 # Serving demo
