@@ -70,7 +70,7 @@ def get_spark(
     # classpath (i.e. plain ``pip install delta-spark`` on a laptop).
     if "DELTA_PACKAGE_ADDED" not in os.environ:
         builder = builder.config(
-            "spark.jars.packages", "io.delta:delta-spark_2.12:3.2.0"
+            "spark.jars.packages", "io.delta:delta-spark_2.12:3.2.1"
         )
         os.environ["DELTA_PACKAGE_ADDED"] = "1"
 

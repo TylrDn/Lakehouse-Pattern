@@ -30,17 +30,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Keep CI dependency footprint small — heavy ML deps (torch,
+          # Keep the PR-gating footprint small — heavy ML deps (mlflow, torch,
           # sentence-transformers, chromadb) install slowly and are exercised
-          # locally via `make ml` / `make rag`. The Spark + Delta subset is
-          # what gates PRs.
-          pip install \
-            pyspark==3.5.1 \
-            delta-spark==3.2.0 \
-            pandas==2.2.2 \
-            pyarrow==16.1.0 \
-            pytest==8.2.2 \
-            ruff==0.5.6
+          # in the nightly job via `make ml` / `make rag`. requirements-ci.txt
+          # is a strict subset of requirements.txt with IDENTICAL pins
+          # (enforced by tests/test_requirements_ci.py) so CI tests the
+          # shipped stack.
+          pip install -r requirements-ci.txt
 
       - name: Lint
         run: ruff check .

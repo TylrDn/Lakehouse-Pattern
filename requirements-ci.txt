@@ -1,0 +1,13 @@
+# CI dependency subset — the PR-gating lane installs ONLY the Spark + Delta
+# stack needed to lint and run the fast test suite. Heavy ML deps (mlflow,
+# torch, sentence-transformers, chromadb) are exercised in the nightly job.
+#
+# CONTRACT: every pin here MUST be identical to the same package's pin in
+# requirements.txt. tests/test_requirements_ci.py enforces this so CI can
+# never drift from the shipped stack again (the P0-1 regression).
+pyspark==3.5.8
+delta-spark==3.2.1
+pandas==2.2.2
+pyarrow==23.0.1
+pytest==9.0.3
+ruff==0.5.6
