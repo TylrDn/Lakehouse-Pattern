@@ -314,20 +314,23 @@ launch story is an honest "here's what's next." Happy to whiteboard any of them.
 1. **Lakebase / OLTP surface.** Attach a managed Postgres to the same
    catalog; write low-latency lookups (e.g., real-time customer_ltv) via
    Change Data Feed from Silver. Provides sub-100 ms reads without
-   shoehorning Spark into serving.
+   shoehorning Spark into serving. _Tracking: [#23](https://github.com/TylrDn/Lakehouse-Pattern/issues/23)._
 2. **AI/BI Genie.** Register Gold under UC, add table + column descriptions,
    enable Genie so analysts get natural-language SQL over `daily_revenue`.
+   _Tracking: [#24](https://github.com/TylrDn/Lakehouse-Pattern/issues/24)._
 3. **Delta Sharing.** Publish `gold_daily_revenue` as a Delta share; any
    downstream partner reads it via the open Delta Sharing protocol — no data
-   copy, no API to maintain.
+   copy, no API to maintain. _Tracking: [#25](https://github.com/TylrDn/Lakehouse-Pattern/issues/25)._
 4. **Query federation.** Register an external Postgres as a foreign catalog
    in UC so a single SQL statement can join lakehouse and OLTP data.
+   _Tracking: [#26](https://github.com/TylrDn/Lakehouse-Pattern/issues/26)._
 5. **Model Serving endpoint.** Deploy the registered
    `daily_revenue_forecaster` as a Model Serving endpoint; wire the Streamlit
    app to call it for inference instead of loading the pickled model
-   locally.
+   locally. _Tracking: [#27](https://github.com/TylrDn/Lakehouse-Pattern/issues/27) — candidate first post-launch._
 6. **Real dataset ingestion.** Swap the synthetic loader for the UCI Online
    Retail II dataset; nothing downstream changes.
+   _Tracking: [#28](https://github.com/TylrDn/Lakehouse-Pattern/issues/28) — candidate first post-launch._
 
 ## License
 
