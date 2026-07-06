@@ -1,10 +1,18 @@
 name: ci
 
 on:
+  # Run on pushes to ANY branch so feature branches (incl. stacked PRs whose
+  # base is not main) get a trustworthy signal before merge. Without this, only
+  # PRs targeting main were ever tested.
   push:
-    branches: [main]
+    branches:
+      - "**"
   pull_request:
     branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint-and-test:
