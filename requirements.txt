@@ -19,7 +19,7 @@ sentence-transformers==3.0.1
 
 # Serving demo
 # 1.54.0 patches CVE-2025 SSRF on Windows and older path-traversal issue.
-streamlit==1.58.0
+streamlit==1.59.2
 
 # Data loading helper
 # requests 2.34.2 patches netrc credential leak (CVE-2024-35195) and
@@ -32,4 +32,4 @@ pyarrow==23.0.1
 # pytest 9.0.3 patches the tmpdir permissions issue (CVE-2024-8811 equivalent).
 pytest==9.1.1
 pytest-cov==7.1.0
-ruff==0.15.20
+ruff==0.15.22
