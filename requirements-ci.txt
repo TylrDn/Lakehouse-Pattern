@@ -6,7 +6,7 @@
 # requirements.txt. tests/test_requirements_ci.py enforces this so CI can
 # never drift from the shipped stack again (the P0-1 regression).
 pyspark==3.5.8
-delta-spark==3.2.1
+delta-spark==4.3.1
 pandas==2.2.2
 pyarrow==23.0.1
 pytest==9.1.1
