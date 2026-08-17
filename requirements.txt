@@ -8,7 +8,7 @@ delta-spark==3.2.1
 # MLflow 3.11.1 patches the tracking-server and artifact-handler CVE clusters.
 # Client APIs used here (log_param, log_metric, sklearn.log_model, register_model)
 # are stable across the 2.x -> 3.x migration.
-mlflow==3.14.0
+mlflow==3.15.0
 scikit-learn==1.9.0
 pandas==2.2.2
 numpy==1.26.4
